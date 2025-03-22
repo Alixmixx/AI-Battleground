@@ -1,26 +1,29 @@
 "use client";
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { BaseLLM } from "@/lib/llm";
+import { LLM_REGISTRY, LLMType } from "@/lib/llmStore";
 
-export type LLM = "GPT-4o" | "GPT-3.5";
 export type Game = "battleship";
 export type Scores = Record<string, number>;
 
 interface BattleContextType {
-    llm1: LLM | null;
-    llm2: LLM | null;
+    llm1: LLMType | null;
+    llm2: LLMType | null;
     game: Game | null;
     scores: Scores;
-    setLLM1: (llm: LLM) => void;
-    setLLM2: (llm: LLM) => void;
+    availableLLMs: LLMType[];
+    getLLMInstance: (llmName: LLMType) => BaseLLM;
+    setLLM1: (llm: LLMType) => void;
+    setLLM2: (llm: LLMType) => void;
     setGame: (game: Game) => void;
-    updateScore: (winner: LLM) => void;
+    updateScore: (winner: LLMType) => void;
 }
 
 const BattleContext = createContext<BattleContextType | undefined>(undefined);
 
 export const BattleProvider = ({ children }: { children: ReactNode }) => {
-    const [llm1, setLLM1] = useState<LLM | null>(null);
-    const [llm2, setLLM2] = useState<LLM | null>(null);
+    const [llm1, setLLM1] = useState<LLMType | null>(null);
+    const [llm2, setLLM2] = useState<LLMType | null>(null);
     const [game, setGame] = useState<Game | null>(null);
     const [scores, setScores] = useState<Scores>({});
 
@@ -29,7 +32,19 @@ export const BattleProvider = ({ children }: { children: ReactNode }) => {
         if (stored) setScores(JSON.parse(stored));
     }, []);
 
-    const updateScore = (winner: LLM) => {
+    const llmInstances = new Map<LLMType, BaseLLM>();
+    const getLLMInstance = (llmName: LLMType): BaseLLM => {
+        if (!llmInstances.has(llmName)) {
+            const llmEntry = LLM_REGISTRY.find(entry => entry.name === llmName);
+            if (!llmEntry) {
+                throw new Error(`LLM ${llmName} not found in registry`);
+            }
+            llmInstances.set(llmName, llmEntry.create());
+        }
+        return llmInstances.get(llmName)!;
+    };
+
+    const updateScore = (winner: LLMType) => {
         setScores(prev => {
             const newScores = { ...prev, [winner]: (prev[winner] || 0) + 1 };
             localStorage.setItem("battleScores", JSON.stringify(newScores));
@@ -37,8 +52,23 @@ export const BattleProvider = ({ children }: { children: ReactNode }) => {
         });
     };
 
+    const availableLLMs = LLM_REGISTRY.map(entry => entry.name);
+
     return (
-        <BattleContext.Provider value={{ llm1, llm2, game, scores, setLLM1, setLLM2, setGame, updateScore }}>
+        <BattleContext.Provider
+            value={{
+                llm1,
+                llm2,
+                game,
+                scores,
+                availableLLMs,
+                getLLMInstance,
+                setLLM1,
+                setLLM2,
+                setGame,
+                updateScore,
+            }}
+        >
             {children}
         </BattleContext.Provider>
     );

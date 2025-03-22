@@ -1,12 +1,11 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useBattleContext, LLM, Game } from "@/context/BattleContext";
+import { useBattleContext, Game } from "@/context/BattleContext";
 
 export default function Menu() {
-    const { llm1, llm2, game, setLLM1, setLLM2, setGame, scores } = useBattleContext();
+    const { llm1, llm2, game, setLLM1, setLLM2, setGame, scores, availableLLMs } = useBattleContext();
     const router = useRouter();
 
-    const llmOptions: LLM[] = ["GPT-4o", "GPT-3.5"];
     const gameOptions: Game[] = ["battleship"];
 
     const startBattle = () => {
@@ -24,7 +23,7 @@ export default function Menu() {
                     <div className="tekken-container w-full max-w-md">
                         <h2 className="text-xl tekken-heading mb-2">PLAYER 1</h2>
                         <div className="flex gap-4">
-                            {llmOptions.map(llm => (
+                            {availableLLMs.map(llm => (
                                 <button
                                     key={llm}
                                     onClick={() => setLLM1(llm)}
@@ -39,7 +38,7 @@ export default function Menu() {
                     <div className="tekken-container w-full max-w-md">
                         <h2 className="text-xl tekken-heading mb-2">PLAYER 2</h2>
                         <div className="flex gap-4">
-                            {llmOptions.map(llm => (
+                            {availableLLMs.map(llm => (
                                 <button
                                     key={llm}
                                     onClick={() => setLLM2(llm)}
