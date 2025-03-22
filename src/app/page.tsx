@@ -2,22 +2,21 @@
 import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const router = useRouter();
+    const router = useRouter();
 
-  const enterBattleground = () => {
-    router.push("/menu");
-  };
+    const enterBattleground = () => {
+        router.push("/menu");
+    };
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <h1 className="text-4xl font-bold mb-4">AI Battleground</h1>
-      <p className="text-lg mb-6">Cute AI, Epic Battles - ready to rumble?</p>
-      <button
-        onClick={enterBattleground}
-        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-      >
-        Enter Battleground
-      </button>
-    </div>
-  );
+    return (
+        <div className="min-h-screen flex flex-col items-center justify-center tekken-scanlines">
+            <div className="tekken-container text-center p-8">
+                <h1 className="text-4xl tekken-heading mb-4">AI BATTLEGROUND</h1>
+                <p className="text-lg mb-6">CUTE AI, EPIC BATTLES - READY TO RUMBLE?</p>
+                <button onClick={enterBattleground} className="tekken-button">
+                    ENTER BATTLEGROUND
+                </button>
+            </div>
+        </div>
+    );
 }

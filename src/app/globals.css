@@ -1,26 +1,112 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@layer theme, base, components, utilities;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+    /* Tekken 4-inspired color palette */
+    --color-tekken-primary: oklch(0.25 0.02 260); /* Dark slate blue */
+    --color-tekken-secondary: oklch(0.35 0.05 260); /* Lighter metallic gray-blue */
+    --color-tekken-accent: oklch(0.6 0.25 0); /* Deep red for highlights */
+    --color-tekken-text: oklch(0.9 0.02 260); /* Off-white with a bluish tint */
+    --color-tekken-background: oklch(0.05 0.01 260); /* Near-black with a hint of blue */
+    --color-tekken-card: oklch(0.15 0.02 260); /* Dark metallic gray */
+    --color-tekken-border: oklch(0.45 0.05 260); /* Steel gray border */
+
+    /* Light/dark mode variables */
+    --color-background: oklch(0.95 0.01 260); /* Light mode default */
+    --color-foreground: oklch(0.2 0.01 260);
+    --color-card-background: oklch(1 0 0);
+    --color-card-border: var(--color-tekken-secondary);
+
+    /* Font settings */
+    --font-tekken: "Impact", "Arial Narrow", sans-serif; /* Bold, condensed font */
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+    @theme {
+        --color-background: var(--color-tekken-background);
+        --color-foreground: var(--color-tekken-text);
+        --color-card-background: var(--color-tekken-card);
+        --color-card-border: var(--color-tekken-border);
+    }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+    body {
+        background-color: var(--color-background);
+        color: var(--color-foreground);
+        font-family: var(--font-tekken);
+        text-transform: uppercase; /* Tekken 4 uses all-caps text */
+    }
+}
+
+@layer components {
+    /* Tekken 4-style container */
+    .tekken-container {
+        border: 3px solid var(--color-tekken-border);
+        border-radius: 2px;
+        padding: 1.5rem;
+        background-color: var(--color-tekken-card);
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+        position: relative;
+    }
+
+    /* Tekken 4-style button */
+    .tekken-button {
+        background-color: var(--color-tekken-primary);
+        color: var(--color-tekken-text);
+        border: 2px solid var(--color-tekken-border);
+        padding: 0.75rem 1.5rem;
+        border-radius: 2px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .tekken-button:hover {
+        background-color: var(--color-tekken-secondary);
+        box-shadow: 0 0 8px var(--color-tekken-accent);
+    }
+
+    /* Tekken 4-style heading */
+    .tekken-heading {
+        color: var(--color-tekken-text);
+        font-weight: 700;
+        letter-spacing: 3px;
+        text-shadow: 0 0 5px var(--color-tekken-accent);
+    }
+
+    /* Tekken 4 CRT-style scanlines and grain */
+    .tekken-scanlines {
+        position: relative;
+    }
+
+    .tekken-scanlines::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2) 1px, transparent 1px, transparent 3px);
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .tekken-scanlines::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVQIW2NkaGD4z8TAwPCfAQB8gQEDZQAAAABJRU5ErkJggg==")
+            repeat;
+        opacity: 0.1;
+        pointer-events: none;
+        z-index: 11;
+    }
 }
