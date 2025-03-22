@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useBattleContext } from "@/context/BattleContext";
 import { useRouter } from "next/navigation";
+import { BaseLLM } from "@/lib/llm";
+import { BattleshipTool, Tool } from "@/lib/tool";
 
 const GRID_SIZE = 10;
 const SHIPS = [
@@ -20,16 +22,18 @@ type PlayerType = "player1" | "player2";
 
 interface GamePlayer {
     name: string;
+    llm: BaseLLM;
+    tools: BattleshipTool[];
     view: Board;
     opponentBoard: Board;
     setView: (board: Board) => void;
     setOpponentBoard: (board: Board) => void;
     opponentName: string;
-    makeMove: () => void;
+    makeMove: () => Promise<void>;
 }
 
 export default function Battleship() {
-    const { llm1, llm2, updateScore } = useBattleContext();
+    const { llm1, llm2, updateScore, getLLMInstance } = useBattleContext();
     const router = useRouter();
 
     const [player1Board, setPlayer1Board] = useState<Board>([]);
@@ -46,10 +50,13 @@ export default function Battleship() {
         return <div>Please select both players from the menu first.</div>;
     }
 
-    // Player configuration
+    const battleshipTools = [new BattleshipTool()];
+
     const playersConfig = {
         player1: {
             name: llm1,
+            llm: getLLMInstance(llm1),
+            tools: battleshipTools,
             view: player1View,
             setView: setPlayer1View,
             opponentBoard: player2Board,
@@ -58,6 +65,8 @@ export default function Battleship() {
         },
         player2: {
             name: llm2,
+            llm: getLLMInstance(llm2),
+            tools: battleshipTools,
             view: player2View,
             setView: setPlayer2View,
             opponentBoard: player1Board,
@@ -66,20 +75,39 @@ export default function Battleship() {
         },
     };
 
-    // Factory function for creating players
     const createPlayer = (playerType: PlayerType): GamePlayer => {
         const config = playersConfig[playerType];
         return {
             ...config,
-            makeMove: () => {
+            makeMove: async () => {
                 if (gameOver || !isInitialized || config.view.length === 0 || config.opponentBoard.length === 0) return;
 
-                let x, y;
-                do {
-                    x = Math.floor(Math.random() * GRID_SIZE);
-                    y = Math.floor(Math.random() * GRID_SIZE);
-                } while (config.view[x][y] !== "empty");
+                const prompt = `
+              You are playing Battleship on a 10x10 grid. Your current view of the opponent's board is:
+              ${JSON.stringify(config.view)}
+              Suggest a move by calling the "makeMove" tool with the current view and your chosen coordinates (x, y) between 0 and 9.
+              The tool will validate your move and return the result. Only use the "makeMove" tool to suggest a move; do not include coordinates in the text response.
+            `;
 
+                const response = await config.llm.generate(prompt, config.tools);
+                const toolResult = response.toolResults.find(r => r.toolName === "makeMove");
+
+                let x: number, y: number;
+                if (toolResult && toolResult.output && toolResult.output.valid) {
+                    // Use the validated coordinates from the tool result
+                    x = toolResult.output.x;
+                    y = toolResult.output.y;
+                } else {
+                    console.error("Invalid tool result or coordinates not found");
+                    return;
+                }
+
+                if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) {
+                    console.error("Coordinates out of bounds");
+                    return;
+                }
+
+                // Apply the move
                 const newView = config.view.map(row => [...row]);
                 const newOpponentBoard = config.opponentBoard.map(row => [...row]);
 
@@ -168,7 +196,7 @@ export default function Battleship() {
 
     useEffect(() => {
         if (!gameOver && isInitialized && autoPlay) {
-            const timeout = setTimeout(() => getCurrentPlayer().makeMove(), MOVE_DELAY);
+            const timeout = setTimeout(async () => await getCurrentPlayer().makeMove(), MOVE_DELAY);
             return () => clearTimeout(timeout);
         }
     }, [currentPlayerType, gameOver, isInitialized, autoPlay]);
@@ -214,7 +242,11 @@ export default function Battleship() {
                 <div className="text-center mt-6">
                     {!gameOver && (
                         <div className="flex justify-center gap-4">
-                            <button onClick={() => getCurrentPlayer().makeMove()} className="tekken-button" disabled={!isInitialized}>
+                            <button
+                                onClick={async () => await getCurrentPlayer().makeMove()}
+                                className="tekken-button"
+                                disabled={!isInitialized}
+                            >
                                 Next Move
                             </button>
                             <button onClick={() => setAutoPlay(!autoPlay)} className="tekken-button">

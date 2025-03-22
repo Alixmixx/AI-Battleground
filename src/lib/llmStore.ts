@@ -5,11 +5,11 @@ import { GPT35, GPT4o, BaseLLM } from "@/lib/llm";
 export const LLM_REGISTRY = [
     {
         name: "GPT-3.5" as const,
-        create: (apiKey = "your-api-key-here") => new GPT35(apiKey),
+        create: (apiKey = process.env.OPENAI_API_KEY) => new GPT35(apiKey),
     },
     {
         name: "GPT-4o" as const,
-        create: (apiKey = "your-api-key-here") => new GPT4o(apiKey),
+        create: (apiKey = process.env.OPENAI_API_KEY) => new GPT4o(apiKey),
     },
 ] as const;
 

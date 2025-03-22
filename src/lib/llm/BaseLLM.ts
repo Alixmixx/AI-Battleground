@@ -1,14 +1,4 @@
-export interface Tool {
-    name: string;
-    description: string;
-    execute: (input: any) => Promise<any>;
-}
-
-export interface ToolResult {
-    toolName: string;
-    input: any;
-    output: any;
-}
+import { Tool, ToolResult } from "@/lib/tool/Tool";
 
 export interface GenerateResponse {
     content: string;
