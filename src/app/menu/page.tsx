@@ -6,7 +6,7 @@ export default function Menu() {
     const { llm1, llm2, game, setLLM1, setLLM2, setGame, scores, availableLLMs } = useBattleContext();
     const router = useRouter();
 
-    const gameOptions: Game[] = ["battleship"];
+    const gameOptions: Game[] = ["battleship", "tictactoe"];
 
     const startBattle = () => {
         if (llm1 && llm2 && game) {
