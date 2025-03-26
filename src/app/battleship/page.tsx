@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import { useBattleContext } from "@/context/BattleContext";
 import { useRouter } from "next/navigation";
-import { BaseLLM } from "@/lib/llm";
-import { BattleshipTool, Tool } from "@/lib/tool";
 
 const GRID_SIZE = 10;
 const SHIPS = [
@@ -22,8 +20,6 @@ type PlayerType = "player1" | "player2";
 
 interface GamePlayer {
     name: string;
-    llm: BaseLLM;
-    tools: BattleshipTool[];
     view: Board;
     opponentBoard: Board;
     setView: (board: Board) => void;
@@ -33,7 +29,7 @@ interface GamePlayer {
 }
 
 export default function Battleship() {
-    const { llm1, llm2, updateScore, getLLMInstance } = useBattleContext();
+    const { llm1, llm2, updateScore } = useBattleContext();
     const router = useRouter();
 
     const [player1Board, setPlayer1Board] = useState<Board>([]);
@@ -50,13 +46,9 @@ export default function Battleship() {
         return <div>Please select both players from the menu first.</div>;
     }
 
-    const battleshipTools = [new BattleshipTool()];
-
     const playersConfig = {
         player1: {
             name: llm1,
-            llm: getLLMInstance(llm1),
-            tools: battleshipTools,
             view: player1View,
             setView: setPlayer1View,
             opponentBoard: player2Board,
@@ -65,8 +57,6 @@ export default function Battleship() {
         },
         player2: {
             name: llm2,
-            llm: getLLMInstance(llm2),
-            tools: battleshipTools,
             view: player2View,
             setView: setPlayer2View,
             opponentBoard: player1Board,
@@ -89,12 +79,23 @@ export default function Battleship() {
               The tool will validate your move and return the result. Only use the "makeMove" tool to suggest a move; do not include coordinates in the text response.
             `;
 
-                const response = await config.llm.generate(prompt, config.tools);
-                const toolResult = response.toolResults.find(r => r.toolName === "makeMove");
+                const response = await fetch("/api/battleship/move", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt, llmName: config.name }),
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error("API error:", data.error);
+                    return;
+                }
+
+                const toolResult = data.toolResults.find((r: any) => r.toolName === "makeMove");
 
                 let x: number, y: number;
                 if (toolResult && toolResult.output && toolResult.output.valid) {
-                    // Use the validated coordinates from the tool result
                     x = toolResult.output.x;
                     y = toolResult.output.y;
                 } else {

@@ -2,7 +2,6 @@
 export interface ITool {
     name: string;
     description: string;
-    execute: (input: any) => Promise<any>;
     getSchema: () => any; // Returns OpenAI-compatible tool schema
 }
 
@@ -15,14 +14,13 @@ export interface ToolResult {
 export abstract class Tool implements ITool {
     name: string;
     description: string;
-    execute: (input: any) => Promise<any>;
 
-    constructor(name: string, description: string = "", execute: (input: any) => Promise<any>) {
+    constructor(name: string, description: string = "") {
         this.name = name;
         this.description = description;
-        this.execute = execute;
     }
 
     // Abstract method to be implemented by subclasses
     abstract getSchema(): any;
+    abstract execute(input: any): Promise<any>;
 }
