@@ -1,9 +1,8 @@
 "use client";
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { BaseLLM } from "@/lib/llm";
-import { LLM_REGISTRY, LLMType } from "@/lib/llmStore";
+import { LLMType } from "@/lib/llmStore";
 
-export type Game = "battleship";
+export type Game = ["battleship", "tictactoe"][number];
 export type Scores = Record<string, number>;
 
 interface BattleContextType {
@@ -12,7 +11,6 @@ interface BattleContextType {
     game: Game | null;
     scores: Scores;
     availableLLMs: LLMType[];
-    getLLMInstance: (llmName: LLMType) => BaseLLM;
     setLLM1: (llm: LLMType) => void;
     setLLM2: (llm: LLMType) => void;
     setGame: (game: Game) => void;
@@ -32,18 +30,6 @@ export const BattleProvider = ({ children }: { children: ReactNode }) => {
         if (stored) setScores(JSON.parse(stored));
     }, []);
 
-    const llmInstances = new Map<LLMType, BaseLLM>();
-    const getLLMInstance = (llmName: LLMType): BaseLLM => {
-        if (!llmInstances.has(llmName)) {
-            const llmEntry = LLM_REGISTRY.find(entry => entry.name === llmName);
-            if (!llmEntry) {
-                throw new Error(`LLM ${llmName} not found in registry`);
-            }
-            llmInstances.set(llmName, llmEntry.create());
-        }
-        return llmInstances.get(llmName)!;
-    };
-
     const updateScore = (winner: LLMType) => {
         setScores(prev => {
             const newScores = { ...prev, [winner]: (prev[winner] || 0) + 1 };
@@ -52,7 +38,7 @@ export const BattleProvider = ({ children }: { children: ReactNode }) => {
         });
     };
 
-    const availableLLMs = LLM_REGISTRY.map(entry => entry.name);
+    const availableLLMs: LLMType[] = ["GPT-3.5", "GPT-4o"];
 
     return (
         <BattleContext.Provider
@@ -62,7 +48,6 @@ export const BattleProvider = ({ children }: { children: ReactNode }) => {
                 game,
                 scores,
                 availableLLMs,
-                getLLMInstance,
                 setLLM1,
                 setLLM2,
                 setGame,

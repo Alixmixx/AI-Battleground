@@ -1,3 +1,4 @@
+import logger from "@/lib/logger";
 import { Tool, ToolResult } from "@/lib/tool/Tool";
 
 export interface GenerateResponse {
@@ -68,11 +69,17 @@ export abstract class BaseLLM implements ILLM {
             const tool = tools.find(t => t.name === call.name);
             if (tool) {
                 try {
+                    logger.info("Executing tool", { toolName: call.name, input: call.input });
                     const output = await tool.execute(call.input);
                     results.push({ toolName: call.name, input: call.input, output });
+                    logger.info("Tool execution result", { toolName: call.name, output });
                 } catch (error) {
+                    logger.error(`Error executing tool ${call.name}: ${error}`);
                     results.push({ toolName: call.name, input: call.input, output: `Error: ${error}` });
                 }
+            } else {
+                logger.warn(`Tool not found: ${call.name}`);
+                results.push({ toolName: call.name, input: call.input, output: `Error: Tool not found` });
             }
         }
         return results;

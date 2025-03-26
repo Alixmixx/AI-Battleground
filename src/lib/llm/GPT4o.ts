@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { BaseLLM, GenerateResponse } from "./BaseLLM";
 import { Tool } from "@/lib/tool";
+import logger from "@/lib/logger";
 export class GPT4o extends BaseLLM {
     private client: OpenAI;
 
@@ -10,26 +11,34 @@ export class GPT4o extends BaseLLM {
     }
 
     async generate(prompt: string, tools: Tool[] = []): Promise<GenerateResponse> {
-        // Extract tool schemas here, right before the API call
+        logger.info("Generating LLM response", { model: this.name, prompt });
+
         const toolSchemas = tools.map(t => t.getSchema());
 
-        const response = await this.client.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [{ role: "user", content: prompt }],
-            tools: toolSchemas, // Pass the schemas to OpenAI
-            tool_choice: "required", // Forces the LLM to use a tool
-        });
+        try {
+            const response = await this.client.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [{ role: "user", content: prompt }],
+                tools: toolSchemas,
+                tool_choice: "required",
+            });
 
-        const message = response.choices[0].message;
-        if (message.tool_calls) {
-            const toolCalls = message.tool_calls.map(call => ({
-                name: call.function.name,
-                input: JSON.parse(call.function.arguments),
-            }));
-            const toolResults = await this.executeTools(toolCalls, tools);
-            return { content: message.content || "", toolResults };
+            const message = response.choices[0].message;
+            logger.info("LLM response received", { content: message.content, toolCalls: message.tool_calls });
+            
+            if (message.tool_calls) {
+                const toolCalls = message.tool_calls.map(call => ({
+                    name: call.function.name,
+                    input: JSON.parse(call.function.arguments),
+                }));
+                const toolResults = await this.executeTools(toolCalls, tools);
+                return { content: message.content || "", toolResults };
+            }
+
+            return { content: message.content || "", toolResults: [] };
+        } catch (error) {
+            logger.error("LLM generation failed", { model: this.name, prompt, error: String(error) });
+            throw error;
         }
-
-        return { content: message.content || "", toolResults: [] };
     }
 }
