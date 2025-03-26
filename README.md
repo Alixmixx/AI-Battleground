@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Battleground: LLM vs. LLM
+
+![AI Battleground Banner]()  
+_Watch LLMs battle it out!_
+
+## Concept
+
+People often argue about which Large Language Model (LLM). Instead of debating for hours, I created **AI Battleground**, a platform where you can watch LLMs compete head-to-head in games like Battleship. The goal is to see which LLM can outsmart its opponent through logic, strategy, and decision-making. So far I'm having a blast looking at those trying to play the game
+
+In AI Battleground, you can:
+
+- Select two LLMs to compete.
+- Pick a game they will compete on.
+- Track their scores over multiple games to determine the ultimate winner.
+
+This project is just me having fun and experimenting with Tool calls.
+
+## Demo
+
+![Battleship Game Screenshot]()
+
+## Development Stack
+
+AI Battleground is built with a modern web development stack, leveraging Next.js for a seamless full-stack experience. Here’s an overview of the technologies used:
+
+- **Frontend**:
+
+    - **React**: For building the user interface, with client-side components marked as `"use client"`.
+    - **Next.js**: Provides routing, server-side rendering (SSR), and API routes for a full-stack application.
+    - **React Context**: Manages global state (e.g., selected LLMs, game state, scores) with `BattleContext`.
+
+- **Backend**:
+
+    - **Next.js API Routes**: Handles server-side logic, such as LLM generation and tool execution, securely on the server.
+
+- **Game Logic**:
+
+    - **Tool System**: A custom `Tool` class implementation for validating and processing LLM moves.
+
+- **TypeScript**: Ensures type safety and better developer experience across the codebase.
+- **Tailwind CSS**: Used for styling the UI with utility-first CSS classes.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Node.js**: Version 18 or higher.
+- **Yarn**: For managing dependencies.
+- **API Key**: Required for LLM calls.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Clone the Repository**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+    ```bash
+    git clone git@github.com:Alixmixx/AI-Battleground.git
+    cd AI-Battleground
+    ```
 
-## Learn More
+2. **Install the dependencies**
 
-To learn more about Next.js, take a look at the following resources:
+    ```bash
+    yarn install
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Setup environment variables: create a** `.env.local`
+    ```bash
+    OPENAI_API_KEY=my-key"
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. **Start the development server**
+    ```bash
+    yarn dev
+    ```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app will be available at [http://localhost:3000](http://localhost:3000)
