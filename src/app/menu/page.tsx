@@ -1,79 +1,96 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useBattleContext, Game } from "@/context/BattleContext";
+import { LLMType } from "@/lib/llmStore";
+import {
+  FighterGrid,
+  VSScreen,
+  SelectionControls,
+} from "@/components/FighterComponents";
 
 export default function Menu() {
-    const { llm1, llm2, game, setLLM1, setLLM2, setGame, scores, availableLLMs } = useBattleContext();
-    const router = useRouter();
+  const { llm1, llm2, game, setLLM1, setLLM2, setGame, scores, availableLLMs } =
+    useBattleContext();
+  const [selectionStep, setSelectionStep] = useState<1 | 2>(1);
+  const router = useRouter();
 
-    const gameOptions: Game[] = ["battleship", "tictactoe"];
+  const gameOptions: Game[] = ["battleship", "tictactoe"];
 
-    const startBattle = () => {
-        if (llm1 && llm2 && game) {
-            router.push(`/${encodeURIComponent(game)}`);
-        }
-    };
+  const handleLLMSelect = (llm: LLMType) => {
+    if (selectionStep === 1) {
+      setLLM1(llm);
+      setSelectionStep(2);
+    } else {
+      setLLM2(llm);
+      if (!game) {
+        setGame(gameOptions[0]);
+      }
+    }
+  };
 
-    return (
-        <div className="min-h-screen tekken-scanlines">
-            <div className="container mx-auto p-6">
-                <h1 className="text-3xl tekken-heading text-center mb-6">AI BATTLEGROUND</h1>
+  const startBattle = () => {
+    if (llm1 && llm2 && game) {
+      router.push(`/${encodeURIComponent(game)}`);
+    }
+  };
 
-                <div className="flex flex-col items-center gap-8">
-                    <div className="tekken-container w-full max-w-md">
-                        <h2 className="text-xl tekken-heading mb-2">PLAYER 1</h2>
-                        <div className="flex gap-4">
-                            {availableLLMs.map(llm => (
-                                <button
-                                    key={llm}
-                                    onClick={() => setLLM1(llm)}
-                                    className={`px-4 py-2 rounded ${llm1 === llm ? "tekken-button" : "border border-solid border-current"}`}
-                                >
-                                    {llm} (Wins: {scores[llm] || 0})
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+  const resetSelection = () => {
+    setLLM1(undefined);
+    setLLM2(undefined);
+    setSelectionStep(1);
+  };
 
-                    <div className="tekken-container w-full max-w-md">
-                        <h2 className="text-xl tekken-heading mb-2">PLAYER 2</h2>
-                        <div className="flex gap-4">
-                            {availableLLMs.map(llm => (
-                                <button
-                                    key={llm}
-                                    onClick={() => setLLM2(llm)}
-                                    className={`px-4 py-2 rounded ${llm2 === llm ? "tekken-button" : "border border-solid border-current"}`}
-                                >
-                                    {llm} (Wins: {scores[llm] || 0})
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+  return (
+    <div className="min-h-screen bg-gray-900 tekken-scanlines flex flex-col items-center justify-center p-4">
+      {/* Header */}
+      <div className="text-5xl tekken-heading mb-8">CHOOSE YOUR FIGHTER</div>
 
-                    <div className="tekken-container w-full max-w-md">
-                        <h2 className="text-xl tekken-heading mb-2">GAME</h2>
-                        <div className="flex gap-4">
-                            {gameOptions.map(g => (
-                                <button
-                                    key={g}
-                                    onClick={() => setGame(g)}
-                                    className={`px-4 py-2 rounded ${game === g ? "tekken-button" : "border border-solid border-current"}`}
-                                >
-                                    {g}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+      {/* VS Screen with fighter portraits */}
+      <VSScreen fighter1={llm1} fighter2={llm2} />
 
-                    <button
-                        onClick={startBattle}
-                        disabled={!llm1 || !llm2 || !game}
-                        className="tekken-button disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        START BATTLE
-                    </button>
-                </div>
+      {/* Fighter selection grid */}
+      <div className="w-full max-w-4xl mb-4">
+        <FighterGrid
+          fighters={availableLLMs}
+          selectedFighter1={llm1}
+          selectedFighter2={llm2}
+          selectionStep={selectionStep}
+          onSelect={handleLLMSelect}
+        />
+      </div>
+
+      {/* Selection info */}
+      <div className="mt-2 text-green-400 text-xl">
+        {selectionStep === 1 ? "Select Player 1" : "Select Player 2"}
+      </div>
+
+      {/* Controls */}
+      <SelectionControls
+        onReset={resetSelection}
+        onStart={startBattle}
+        gameOptions={gameOptions}
+        selectedGame={game}
+        onGameSelect={setGame}
+        disableStart={!llm1 || !llm2 || !game}
+      />
+
+      {/* Scores display */}
+      {llm1 && llm2 && (
+        <div className="mt-6 tekken-container">
+          <div className="text-center text-xl mb-2">FIGHTER STATS</div>
+          <div className="flex justify-around">
+            <div>
+              <span className="text-green-400">{llm1}:</span>{" "}
+              {scores[llm1] || 0} wins
             </div>
+            <div>
+              <span className="text-green-400">{llm2}:</span>{" "}
+              {scores[llm2] || 0} wins
+            </div>
+          </div>
         </div>
-    );
+      )}
+    </div>
+  );
 }
