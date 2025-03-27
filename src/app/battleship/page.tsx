@@ -3,8 +3,91 @@
 import { useState, useEffect } from "react";
 import { useBattleContext } from "@/context/BattleContext";
 import { useRouter } from "next/navigation";
+import { Typography, Button, Layout, Space, Card, Row, Col } from "antd";
+import styled from "styled-components";
+
+const { Title, Text } = Typography;
+const { Content } = Layout;
+
+const StyledContent = styled.div`
+    min-height: 100vh;
+    background-color: var(--color-tekken-background);
+    position: relative;
+    padding: 24px;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2) 1px, transparent 1px, transparent 3px);
+        pointer-events: none;
+        z-index: 10;
+    }
+`;
+
+const StyledCard = styled.div`
+    background-color: var(--color-tekken-card);
+    border: 3px solid var(--color-tekken-border);
+    border-radius: 2px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+    margin-bottom: 24px;
+    padding: 24px;
+
+    .ant-card-head {
+        border-bottom: 2px solid var(--color-tekken-border);
+    }
+
+    .ant-card-head-title {
+        color: var(--color-tekken-text);
+        font-weight: 700;
+        letter-spacing: 2px;
+    }
+`;
+
+const StyledButton = styled(Button)`
+    background-color: var(--color-tekken-primary) !important;
+    color: var(--color-tekken-text) !important;
+    border: 2px solid var(--color-tekken-border) !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 2px !important;
+    font-weight: 700 !important;
+    letter-spacing: 2px !important;
+    height: auto !important;
+
+    &:hover {
+        background-color: var(--color-tekken-secondary) !important;
+        box-shadow: 0 0 8px var(--color-tekken-accent) !important;
+    }
+
+    &:disabled {
+        opacity: 0.5 !important;
+        cursor: not-allowed !important;
+    }
+`;
+
+const GameCell = styled.div<{ cell: string; hidden?: boolean }>`
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--color-tekken-border);
+    background-color: ${props => {
+        if (props.cell === "hit") return "var(--color-tekken-accent)";
+        if (props.cell === "miss") return "var(--color-tekken-secondary)";
+        if (props.cell === "ship" && !props.hidden) return "var(--color-tekken-primary)";
+        return "var(--color-tekken-card)";
+    }};
+`;
 
 const GRID_SIZE = 10;
+const GameGrid = styled.div`
+    display: grid;
+    gap: 1px;
+    grid-template-columns: repeat(${GRID_SIZE}, 1fr);
+    margin-bottom: 24px;
+`;
+
 const SHIPS = [
     { name: "Carrier", size: 5 },
     { name: "Battleship", size: 4 },
@@ -210,58 +293,67 @@ export default function Battleship() {
     };
 
     const renderBoard = (board: Board, hidden: boolean = false) => (
-        <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}>
-            {board.map((row, i) =>
-                row.map((cell, j) => <div key={`${i}-${j}`} className={`w-8 h-8 border ${getCellClassName(cell, hidden)}`} />)
-            )}
-        </div>
+        <GameGrid>{board.map((row, i) => row.map((cell, j) => <GameCell key={`${i}-${j}`} cell={cell} hidden={hidden} />))}</GameGrid>
     );
 
     return (
-        <div className="min-h-screen tekken-scanlines">
-            <div className="container mx-auto p-6">
-                <h1 className="text-3xl tekken-heading text-center mb-6">
+        <StyledContent>
+            <Space direction="vertical" align="center" size="large" style={{ width: "100%" }}>
+                <Title
+                    level={1}
+                    style={{
+                        color: "var(--color-tekken-text)",
+                        textAlign: "center",
+                        marginBottom: "24px",
+                        textShadow: "0 0 5px var(--color-tekken-accent)",
+                    }}
+                >
                     BATTLESHIP: {llm1} vs {llm2}
-                </h1>
-                <div className="text-center mb-4">
-                    <h2 className="text-xl">{!gameOver ? `Current Turn: ${getCurrentPlayer().name}` : `Game Over! ${winner} Wins!`}</h2>
-                </div>
-                <div className="flex flex-col md:flex-row justify-center gap-12">
-                    <div>
-                        <h2 className="text-xl tekken-heading mb-2">{llm1} (Player 1)</h2>
-                        {player1Board.length ? renderBoard(player1Board) : <div>Loading...</div>}
-                        <h3 className="tekken-heading mt-4">View of {llm2}'s Board</h3>
-                        {player1View.length ? renderBoard(player1View) : <div>Loading...</div>}
-                    </div>
-                    <div>
-                        <h2 className="text-xl tekken-heading mb-2">{llm2} (Player 2)</h2>
-                        {player2Board.length ? renderBoard(player2Board) : <div>Loading...</div>}
-                        <h3 className="tekken-heading mt-4">View of {llm1}'s Board</h3>
-                        {player2View.length ? renderBoard(player2View) : <div>Loading...</div>}
-                    </div>
-                </div>
-                <div className="text-center mt-6">
-                    {!gameOver && (
-                        <div className="flex justify-center gap-4">
-                            <button
-                                onClick={async () => await getCurrentPlayer().makeMove()}
-                                className="tekken-button"
-                                disabled={!isInitialized}
-                            >
-                                Next Move
-                            </button>
-                            <button onClick={() => setAutoPlay(!autoPlay)} className="tekken-button">
-                                {autoPlay ? "Pause Auto-Play" : "Resume Auto-Play"}
-                            </button>
-                        </div>
-                    )}
-                    {gameOver && (
-                        <button onClick={() => router.push("/")} className="tekken-button mt-4">
-                            Back to Menu
-                        </button>
-                    )}
-                </div>
-            </div>
-        </div>
+                </Title>
+
+                <Text style={{ fontSize: "1.25rem", color: "var(--color-tekken-text)" }}>
+                    {!gameOver ? `Current Turn: ${getCurrentPlayer().name}` : `Game Over! ${winner} Wins!`}
+                </Text>
+
+                <Row gutter={[48, 24]} style={{ width: "100%" }}>
+                    <Col xs={24} md={12}>
+                        <StyledCard>
+                            <Title level={4} style={{ color: "var(--color-tekken-text)", marginBottom: "16px" }}>
+                                {llm1} (Player 1)
+                            </Title>
+                            {player1Board.length ? renderBoard(player1Board) : <Text>Loading...</Text>}
+                            <Title level={4} style={{ color: "var(--color-tekken-text)", marginTop: "16px" }}>
+                                View of {llm2}'s Board
+                            </Title>
+                            {player1View.length ? renderBoard(player1View) : <Text>Loading...</Text>}
+                        </StyledCard>
+                    </Col>
+
+                    <Col xs={24} md={12}>
+                        <StyledCard>
+                            <Title level={4} style={{ color: "var(--color-tekken-text)", marginBottom: "16px" }}>
+                                {llm2} (Player 2)
+                            </Title>
+                            {player2Board.length ? renderBoard(player2Board) : <Text>Loading...</Text>}
+                            <Title level={4} style={{ color: "var(--color-tekken-text)", marginTop: "16px" }}>
+                                View of {llm1}'s Board
+                            </Title>
+                            {player2View.length ? renderBoard(player2View) : <Text>Loading...</Text>}
+                        </StyledCard>
+                    </Col>
+                </Row>
+
+                {!gameOver && (
+                    <Space>
+                        <StyledButton onClick={async () => await getCurrentPlayer().makeMove()} disabled={!isInitialized}>
+                            MAKE MOVE
+                        </StyledButton>
+                        <StyledButton onClick={() => setAutoPlay(!autoPlay)}>{autoPlay ? "PAUSE" : "AUTO PLAY"}</StyledButton>
+                    </Space>
+                )}
+
+                <StyledButton onClick={() => router.push("/")}>BACK TO MENU</StyledButton>
+            </Space>
+        </StyledContent>
     );
 }

@@ -1,6 +1,89 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useBattleContext, Game } from "@/context/BattleContext";
+import { Typography, Button, Layout, Space, Card, Radio } from "antd";
+import styled from "styled-components";
+
+const { Title, Text } = Typography;
+const { Content } = Layout;
+
+const StyledContent = styled(Content)`
+    min-height: 100vh;
+    background-color: var(--color-tekken-background);
+    position: relative;
+    padding: 24px;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2) 1px, transparent 1px, transparent 3px);
+        pointer-events: none;
+        z-index: 10;
+    }
+`;
+
+const StyledCard = styled(Card)`
+    background-color: var(--color-tekken-card);
+    border: 3px solid var(--color-tekken-border);
+    border-radius: 2px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+    margin-bottom: 24px;
+    width: 100%;
+    max-width: 512px;
+
+    .ant-card-head {
+        border-bottom: 2px solid var(--color-tekken-border);
+    }
+
+    .ant-card-head-title {
+        color: var(--color-tekken-text);
+        font-weight: 700;
+        letter-spacing: 2px;
+    }
+`;
+
+const StyledButton = styled(Button)`
+    background-color: var(--color-tekken-primary);
+    color: var(--color-tekken-text);
+    border: 2px solid var(--color-tekken-border);
+    padding: 0.75rem 1.5rem;
+    border-radius: 2px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    height: auto;
+
+    &:hover {
+        background-color: var(--color-tekken-secondary);
+        box-shadow: 0 0 8px var(--color-tekken-accent);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+`;
+
+const StyledRadioButton = styled(Radio.Button)`
+    color: var(--color-tekken-text);
+    border-color: var(--color-tekken-border);
+    font-weight: 700;
+    letter-spacing: 1px;
+
+    &.ant-radio-button-wrapper-checked {
+        background-color: var(--color-tekken-primary);
+        border-color: var(--color-tekken-border);
+        box-shadow: 0 0 8px var(--color-tekken-accent);
+    }
+
+    &:hover {
+        color: var(--color-tekken-text);
+        border-color: var(--color-tekken-border);
+    }
+`;
 
 export default function Menu() {
     const { llm1, llm2, game, setLLM1, setLLM2, setGame, scores, availableLLMs } = useBattleContext();
@@ -15,65 +98,60 @@ export default function Menu() {
     };
 
     return (
-        <div className="min-h-screen tekken-scanlines">
-            <div className="container mx-auto p-6">
-                <h1 className="text-3xl tekken-heading text-center mb-6">AI BATTLEGROUND</h1>
+        <StyledContent>
+            <Space direction="vertical" align="center" size="large" style={{ width: "100%" }}>
+                <Title
+                    level={1}
+                    style={{
+                        color: "var(--color-tekken-text)",
+                        textAlign: "center",
+                        marginBottom: "24px",
+                        textShadow: "0 0 5px var(--color-tekken-accent)",
+                    }}
+                >
+                    AI BATTLEGROUND
+                </Title>
 
-                <div className="flex flex-col items-center gap-8">
-                    <div className="tekken-container w-full max-w-md">
-                        <h2 className="text-xl tekken-heading mb-2">PLAYER 1</h2>
-                        <div className="flex gap-4">
+                <StyledCard title="PLAYER 1">
+                    <Radio.Group value={llm1} onChange={e => setLLM1(e.target.value)}>
+                        <Space wrap>
                             {availableLLMs.map(llm => (
-                                <button
-                                    key={llm}
-                                    onClick={() => setLLM1(llm)}
-                                    className={`px-4 py-2 rounded ${llm1 === llm ? "tekken-button" : "border border-solid border-current"}`}
-                                >
+                                <StyledRadioButton key={llm} value={llm}>
                                     {llm} (Wins: {scores[llm] || 0})
-                                </button>
+                                </StyledRadioButton>
                             ))}
-                        </div>
-                    </div>
+                        </Space>
+                    </Radio.Group>
+                </StyledCard>
 
-                    <div className="tekken-container w-full max-w-md">
-                        <h2 className="text-xl tekken-heading mb-2">PLAYER 2</h2>
-                        <div className="flex gap-4">
+                <StyledCard title="PLAYER 2">
+                    <Radio.Group value={llm2} onChange={e => setLLM2(e.target.value)}>
+                        <Space wrap>
                             {availableLLMs.map(llm => (
-                                <button
-                                    key={llm}
-                                    onClick={() => setLLM2(llm)}
-                                    className={`px-4 py-2 rounded ${llm2 === llm ? "tekken-button" : "border border-solid border-current"}`}
-                                >
+                                <StyledRadioButton key={llm} value={llm}>
                                     {llm} (Wins: {scores[llm] || 0})
-                                </button>
+                                </StyledRadioButton>
                             ))}
-                        </div>
-                    </div>
+                        </Space>
+                    </Radio.Group>
+                </StyledCard>
 
-                    <div className="tekken-container w-full max-w-md">
-                        <h2 className="text-xl tekken-heading mb-2">GAME</h2>
-                        <div className="flex gap-4">
+                <StyledCard title="GAME">
+                    <Radio.Group value={game} onChange={e => setGame(e.target.value)}>
+                        <Space wrap>
                             {gameOptions.map(g => (
-                                <button
-                                    key={g}
-                                    onClick={() => setGame(g)}
-                                    className={`px-4 py-2 rounded ${game === g ? "tekken-button" : "border border-solid border-current"}`}
-                                >
+                                <StyledRadioButton key={g} value={g}>
                                     {g}
-                                </button>
+                                </StyledRadioButton>
                             ))}
-                        </div>
-                    </div>
+                        </Space>
+                    </Radio.Group>
+                </StyledCard>
 
-                    <button
-                        onClick={startBattle}
-                        disabled={!llm1 || !llm2 || !game}
-                        className="tekken-button disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        START BATTLE
-                    </button>
-                </div>
-            </div>
-        </div>
+                <StyledButton onClick={startBattle} disabled={!llm1 || !llm2 || !game}>
+                    START BATTLE
+                </StyledButton>
+            </Space>
+        </StyledContent>
     );
 }
