@@ -8,6 +8,19 @@ import {
   VSScreen,
   SelectionControls,
 } from "@/components/FighterComponents";
+import { Typography, Button, Layout, Space, Card, Radio } from "antd";
+import styled from "styled-components";
+
+const { Title, Text } = Typography;
+const { Content } = Layout;
+
+const StyledContent = styled(Content)``;
+
+const StyledCard = styled(Card)``;
+
+const StyledButton = styled(Button)``;
+
+const StyledRadioButton = styled(Radio.Button)``;
 
 export default function Menu() {
   const { llm1, llm2, game, setLLM1, setLLM2, setGame, scores, availableLLMs } =
@@ -42,55 +55,63 @@ export default function Menu() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 tekken-scanlines flex flex-col items-center justify-center p-4">
-      {/* Header */}
-      <div className="text-5xl tekken-heading mb-8">CHOOSE YOUR FIGHTER</div>
+    <StyledContent>
+      <Space
+        direction="vertical"
+        align="center"
+        size="large"
+        style={{ width: "100%" }}
+      >
+        <Title
+          level={1}
+          style={{
+            textAlign: "center",
+            marginBottom: "24px",
+          }}
+        >
+          AI BATTLEGROUND
+        </Title>
 
-      {/* VS Screen with fighter portraits */}
-      <VSScreen fighter1={llm1} fighter2={llm2} />
+        <StyledCard title="PLAYER 1">
+          <Radio.Group value={llm1} onChange={(e) => setLLM1(e.target.value)}>
+            <Space wrap>
+              {availableLLMs.map((llm) => (
+                <StyledRadioButton key={llm} value={llm}>
+                  {llm} (Wins: {scores[llm] || 0})
+                </StyledRadioButton>
+              ))}
+            </Space>
+          </Radio.Group>
+        </StyledCard>
 
-      {/* Fighter selection grid */}
-      <div className="w-full max-w-4xl mb-4">
-        <FighterGrid
-          fighters={availableLLMs}
-          selectedFighter1={llm1}
-          selectedFighter2={llm2}
-          selectionStep={selectionStep}
-          onSelect={handleLLMSelect}
-        />
-      </div>
+        <StyledCard title="PLAYER 2">
+          <Radio.Group value={llm2} onChange={(e) => setLLM2(e.target.value)}>
+            <Space wrap>
+              {availableLLMs.map((llm) => (
+                <StyledRadioButton key={llm} value={llm}>
+                  {llm} (Wins: {scores[llm] || 0})
+                </StyledRadioButton>
+              ))}
+            </Space>
+          </Radio.Group>
+        </StyledCard>
 
-      {/* Selection info */}
-      <div className="mt-2 text-green-400 text-xl">
-        {selectionStep === 1 ? "Select Player 1" : "Select Player 2"}
-      </div>
+        <StyledCard title="GAME">
+          <Radio.Group value={game} onChange={(e) => setGame(e.target.value)}>
+            <Space wrap>
+              {gameOptions.map((g) => (
+                <StyledRadioButton key={g} value={g}>
+                  {g}
+                </StyledRadioButton>
+              ))}
+            </Space>
+          </Radio.Group>
+        </StyledCard>
 
-      {/* Controls */}
-      <SelectionControls
-        onReset={resetSelection}
-        onStart={startBattle}
-        gameOptions={gameOptions}
-        selectedGame={game}
-        onGameSelect={setGame}
-        disableStart={!llm1 || !llm2 || !game}
-      />
-
-      {/* Scores display */}
-      {llm1 && llm2 && (
-        <div className="mt-6 tekken-container">
-          <div className="text-center text-xl mb-2">FIGHTER STATS</div>
-          <div className="flex justify-around">
-            <div>
-              <span className="text-green-400">{llm1}:</span>{" "}
-              {scores[llm1] || 0} wins
-            </div>
-            <div>
-              <span className="text-green-400">{llm2}:</span>{" "}
-              {scores[llm2] || 0} wins
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+        <StyledButton onClick={startBattle} disabled={!llm1 || !llm2 || !game}>
+          START BATTLE
+        </StyledButton>
+      </Space>
+    </StyledContent>
   );
 }
