@@ -11,6 +11,7 @@ interface BattleContextType {
   setLLM1: (llm: LLMType | undefined) => void;
   setLLM2: (llm: LLMType | undefined) => void;
   setGame: (game: Game) => void;
+  updateScore: (scores: Record<string, number>) => void;
   scores: Record<string, number>;
   availableLLMs: LLMType[];
 }
@@ -35,6 +36,7 @@ export const BattleProvider = ({ children }: { children: ReactNode }) => {
         setLLM2,
         setGame,
         scores,
+        updateScore: () => {},
         availableLLMs,
       }}
     >

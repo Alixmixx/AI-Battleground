@@ -12,46 +12,13 @@ const StyledContent = styled(Content)`
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: var(--color-tekken-background);
     position: relative;
-
-    &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2) 1px, transparent 1px, transparent 3px);
-        pointer-events: none;
-        z-index: 10;
-    }
 `;
 
 const StyledContainer = styled.div`
-    border: 3px solid var(--color-tekken-border);
-    border-radius: 2px;
-    padding: 1.5rem;
-    background-color: var(--color-tekken-card);
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
-    position: relative;
-    text-align: center;
 `;
 
 const StyledButton = styled(Button)`
-    background-color: var(--color-tekken-primary);
-    color: var(--color-tekken-text);
-    border: 2px solid var(--color-tekken-border);
-    padding: 0.75rem 1.5rem;
-    border-radius: 2px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    height: auto;
-
-    &:hover {
-        background-color: var(--color-tekken-secondary);
-        box-shadow: 0 0 8px var(--color-tekken-accent);
-    }
 `;
 
 export default function Home() {
