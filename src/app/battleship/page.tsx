@@ -25,23 +25,12 @@ interface GameCellProps {
 }
 
 interface StatusTextProps {
-  $gameOver?: boolean; // Use $ prefix to avoid DOM attribute warnings
+  $gameOver?: boolean;
 }
 
 // Styled components
 const GameContainer = styled(Content)`
   padding: 24px;
-`;
-
-const GameBoard = styled.div`
-  display: grid;
-  grid-template-columns: repeat(10, var(--board-cell-size));
-  grid-gap: var(--board-grid-gap);
-  margin: 0 auto;
-  border: 2px solid var(--color-border);
-  padding: 8px;
-  background: var(--color-secondary);
-  max-width: fit-content;
 `;
 
 const GameCell = styled.div<GameCellProps>`
@@ -55,27 +44,85 @@ const GameCell = styled.div<GameCellProps>`
     return "var(--color-board-empty)";
   }};
   border: 1px solid var(--board-border-color);
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ${(props) => (props.hidden ? "pointer" : "default")};
+
+  &:hover {
+    box-shadow: ${(props) =>
+      props.hidden ? "0 0 0 3px var(--color-accent)" : "none"};
+    background-color: ${(props) => {
+      if (props.cellType === "empty" && props.hidden)
+        return "var(--color-board-hover)";
+      return "";
+    }};
+  }
+
+  /* Add indicators for hits and misses */
+  &::after {
+    content: ${(props) => {
+      if (props.cellType === "hit") return "'✘'";
+      if (props.cellType === "miss") return "'○'";
+      return "''";
+    }};
+    font-size: ${(props) =>
+      props.cellType === "hit" || props.cellType === "miss" ? "20px" : "0"};
+    color: ${(props) => (props.cellType === "hit" ? "#ffffff" : "#ffffff")};
+    font-weight: bold;
+  }
 `;
 
 const StatusText = styled(Text)<StatusTextProps>`
-  font-size: 18px;
+  font-size: 20px;
   display: block;
   text-align: center;
   font-weight: bold;
-  color: ${(props) => (props.$gameOver ? "var(--color-accent)" : "inherit")};
+  color: ${(props) =>
+    props.$gameOver ? "var(--color-accent)" : "var(--color-foreground)"};
+  padding: 10px 0;
 `;
 
-const BoardSection = styled.div`
-  margin-bottom: 24px;
+const GameBoard = styled.div`
+  display: grid;
+  grid-template-columns: repeat(10, var(--board-cell-size));
+  grid-gap: var(--board-grid-gap);
+  margin: 0 auto;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  padding: 10px;
+  background: var(--color-secondary);
+  max-width: fit-content;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 `;
 
+/* Updated PlayerCard for better aesthetics */
 const PlayerCard = styled(Card)`
   height: 100%;
+  border-radius: 4px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
 
   .ant-card-head {
     background-color: var(--color-secondary);
     border-bottom: 1px solid var(--color-border);
+  }
+
+  .ant-card-head-title {
+    font-weight: bold;
+    color: var(--color-accent);
+  }
+`;
+
+/* Updated BoardSection with better spacing */
+const BoardSection = styled.div`
+  margin-bottom: 24px;
+
+  h5 {
+    margin-bottom: 16px;
+    color: var(--color-foreground);
+    font-weight: bold;
   }
 `;
 
