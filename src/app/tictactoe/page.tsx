@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { useBattleContext } from "@/context/BattleContext";
 import { useRouter } from "next/navigation";
-import { Typography, Button, Layout, Space, Card } from "antd";
+import { Typography, Button, Layout, Space, Card, theme } from "antd";
+import { CloseOutlined, BorderOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 const { Content } = Layout;
+const { useToken } = theme;
 
 const GRID_SIZE = 3;
 const MOVE_DELAY = 500;
@@ -27,6 +29,7 @@ interface GamePlayer {
 export default function TicTacToe() {
     const { llm1, llm2, updateScore } = useBattleContext();
     const router = useRouter();
+    const { token } = useToken();
 
     const [board, setBoard] = useState<Board>([]);
     const [currentPlayerType, setCurrentPlayerType] = useState<PlayerType>("player1");
@@ -162,6 +165,17 @@ export default function TicTacToe() {
         }
     }, [currentPlayerType, gameOver, isInitialized, autoPlay]);
 
+    const renderCell = (cell: Cell) => {
+        switch (cell) {
+            case "X":
+                return <CloseOutlined style={{ fontSize: "32px", color: token.colorPrimary }} />;
+            case "O":
+                return <BorderOutlined style={{ fontSize: "32px", color: token.colorSuccess }} />;
+            default:
+                return null;
+        }
+    };
+
     const renderBoard = (board: Board) => (
         <div
             style={{
@@ -176,16 +190,20 @@ export default function TicTacToe() {
                     <div
                         key={`${x}-${y}`}
                         style={{
-                            width: "64px",
-                            height: "64px",
+                            width: "80px",
+                            height: "80px",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             fontSize: "24px",
                             fontWeight: "bold",
+                            background: token.colorBgContainer,
+                            boxShadow: token.boxShadow,
+                            borderRadius: token.borderRadiusLG,
+                            transition: "all 0.3s ease",
                         }}
                     >
-                        {cell}
+                        {renderCell(cell)}
                     </div>
                 ))
             )}
@@ -198,41 +216,80 @@ export default function TicTacToe() {
                 minHeight: "100vh",
                 position: "relative",
                 padding: "24px",
+                background: token.colorBgLayout,
             }}
         >
             <Space direction="vertical" align="center" size="large" style={{ width: "100%" }}>
                 <Title
                     level={1}
                     style={{
-                        color: "var(--color-text)",
+                        color: token.colorText,
                         textAlign: "center",
                         marginBottom: "24px",
-                        textShadow: "0 0 5px var(--color-accent)",
                     }}
                 >
-                    TIC-TAC-TOE: {llm1} (X) vs {llm2} (O)
+                    TIC-TAC-TOE: {llm1} vs {llm2}
                 </Title>
 
-                <Text style={{ fontSize: "1.25rem", color: "var(--color-text)" }}>
-                    {!gameOver
-                        ? `Current Turn: ${getCurrentPlayer().name}`
-                        : winner
-                          ? `Game Over! ${winner} Wins!`
-                          : "Game Over! It's a Draw!"}
-                </Text>
+                <Card
+                    style={{
+                        borderRadius: token.borderRadiusLG,
+                        boxShadow: token.boxShadowSecondary,
+                        marginBottom: "16px",
+                    }}
+                >
+                    <Space direction="vertical" align="center">
+                        <Text
+                            style={{
+                                fontSize: "16px",
+                                marginBottom: "8px",
+                                color: token.colorTextSecondary,
+                            }}
+                        >
+                            {llm1} (<CloseOutlined style={{ color: token.colorPrimary }} />) vs
+                            {llm2} (<BorderOutlined style={{ color: token.colorSuccess }} />)
+                        </Text>
 
-                <Card>{board.length ? renderBoard(board) : <Text>Loading...</Text>}</Card>
+                        <Text
+                            style={{
+                                fontSize: "18px",
+                                fontWeight: "bold",
+                                color: gameOver && winner ? token.colorPrimary : token.colorText,
+                                marginBottom: "16px",
+                            }}
+                        >
+                            {!gameOver
+                                ? `Current Turn: ${getCurrentPlayer().name}`
+                                : winner
+                                  ? `Game Over! ${winner} Wins!`
+                                  : "Game Over! It's a Draw!"}
+                        </Text>
 
-                {!gameOver && (
-                    <Space>
-                        <Button type="primary" onClick={async () => await getCurrentPlayer().makeMove()} disabled={!isInitialized}>
-                            MAKE MOVE
-                        </Button>
-                        <Button onClick={() => setAutoPlay(!autoPlay)}>{autoPlay ? "PAUSE" : "AUTO PLAY"}</Button>
+                        {board.length ? renderBoard(board) : <Text>Loading...</Text>}
                     </Space>
-                )}
+                </Card>
 
-                <Button onClick={() => router.push("/")}>BACK TO MENU</Button>
+                <Space>
+                    {!gameOver && (
+                        <>
+                            <Button
+                                type="primary"
+                                onClick={async () => await getCurrentPlayer().makeMove()}
+                                disabled={!isInitialized}
+                                size="large"
+                            >
+                                MAKE MOVE
+                            </Button>
+                            <Button onClick={() => setAutoPlay(!autoPlay)} size="large" type={autoPlay ? "default" : "primary"}>
+                                {autoPlay ? "PAUSE" : "AUTO PLAY"}
+                            </Button>
+                        </>
+                    )}
+
+                    <Button onClick={() => router.push("/")} size="large">
+                        BACK TO MENU
+                    </Button>
+                </Space>
             </Space>
         </Content>
     );
