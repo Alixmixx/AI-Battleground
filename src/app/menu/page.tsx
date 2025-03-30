@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBattleContext, Game } from "@/context/BattleContext";
 import { LLMType } from "@/lib/llmStore";
 import { FighterGrid, VSScreen, SelectionControls } from "@/components/FighterComponents";
-import { Typography, Button, Layout, Space, Card, Radio } from "antd";
+import { Typography, Button, Layout, Space, Card, Radio, Row, Col, Divider } from "antd";
 
 const { Title } = Typography;
 const { Content } = Layout;
@@ -41,57 +41,80 @@ export default function Menu() {
     };
 
     return (
-        <Content style={{ padding: "24px" }}>
-            <Space direction="vertical" align="center" size="large" style={{ width: "100%" }}>
-                <Title
-                    level={1}
-                    style={{
-                        marginBottom: "24px",
-                    }}
-                >
-                    AI BATTLEGROUND
-                </Title>
+        <Layout>
+            <Content style={{ padding: "24px", minHeight: "100vh" }}>
+                <Space direction="vertical" align="center" size="large" style={{ width: "100%" }}>
+                    {/* Header */}
+                    <Title level={1}>CHOOSE YOUR FIGHTER</Title>
 
-                <Card title="PLAYER 1" style={{ width: "100%" }}>
-                    <Radio.Group value={llm1} onChange={e => setLLM1(e.target.value)}>
-                        <Space wrap>
+                    {/* VS Screen */}
+                    <Row justify="center" align="middle" style={{ width: "100%" }}>
+                        <Col span={10} style={{ textAlign: "center" }}>
+                            <Card bordered>
+                                <Space direction="vertical" align="center">
+                                    <div>{llm1 ? llm1 : "Player 1"}</div>
+                                    {llm1 && <div>Wins: {scores[llm1] || 0}</div>}
+                                </Space>
+                            </Card>
+                        </Col>
+                        <Col span={4} style={{ textAlign: "center" }}>
+                            <Title level={1}>VS</Title>
+                        </Col>
+                        <Col span={10} style={{ textAlign: "center" }}>
+                            <Card bordered>
+                                <Space direction="vertical" align="center">
+                                    <div>{llm2 ? llm2 : "Player 2"}</div>
+                                    {llm2 && <div>Wins: {scores[llm2] || 0}</div>}
+                                </Space>
+                            </Card>
+                        </Col>
+                    </Row>
+
+                    {/* Selection info */}
+                    <Title level={4}>{selectionStep === 1 ? "Select Player 1" : "Select Player 2"}</Title>
+
+                    {/* Fighter selection grid */}
+                    <Card style={{ width: "100%" }}>
+                        <Row gutter={[16, 16]}>
                             {availableLLMs.map(llm => (
-                                <Radio.Button key={llm} value={llm}>
-                                    {llm} (Wins: {scores[llm] || 0})
-                                </Radio.Button>
+                                <Col key={llm} span={4}>
+                                    <Card
+                                        hoverable
+                                        onClick={() => handleLLMSelect(llm)}
+                                        style={{
+                                            textAlign: "center",
+                                            borderColor: llm1 === llm || llm2 === llm ? "#1677ff" : undefined,
+                                        }}
+                                    >
+                                        {llm}
+                                    </Card>
+                                </Col>
                             ))}
-                        </Space>
-                    </Radio.Group>
-                </Card>
+                        </Row>
+                    </Card>
 
-                <Card title="PLAYER 2" style={{ width: "100%" }}>
-                    <Radio.Group value={llm2} onChange={e => setLLM2(e.target.value)}>
-                        <Space wrap>
-                            {availableLLMs.map(llm => (
-                                <Radio.Button key={llm} value={llm}>
-                                    {llm} (Wins: {scores[llm] || 0})
-                                </Radio.Button>
-                            ))}
-                        </Space>
-                    </Radio.Group>
-                </Card>
+                    {/* Game selection */}
+                    <Card style={{ width: "100%" }} title="SELECT GAME">
+                        <Radio.Group value={game} onChange={e => setGame(e.target.value)}>
+                            <Space>
+                                {gameOptions.map(g => (
+                                    <Radio.Button key={g} value={g}>
+                                        {g.toUpperCase()}
+                                    </Radio.Button>
+                                ))}
+                            </Space>
+                        </Radio.Group>
+                    </Card>
 
-                <Card title="GAME" style={{ width: "100%" }}>
-                    <Radio.Group value={game} onChange={e => setGame(e.target.value)}>
-                        <Space wrap>
-                            {gameOptions.map(g => (
-                                <Radio.Button key={g} value={g}>
-                                    {g}
-                                </Radio.Button>
-                            ))}
-                        </Space>
-                    </Radio.Group>
-                </Card>
-
-                <Button type="primary" onClick={startBattle} disabled={!llm1 || !llm2 || !game}>
-                    START BATTLE
-                </Button>
-            </Space>
-        </Content>
+                    {/* Controls */}
+                    <Space>
+                        <Button onClick={resetSelection}>RESET</Button>
+                        <Button type="primary" onClick={startBattle} disabled={!llm1 || !llm2 || !game}>
+                            START BATTLE
+                        </Button>
+                    </Space>
+                </Space>
+            </Content>
+        </Layout>
     );
 }
