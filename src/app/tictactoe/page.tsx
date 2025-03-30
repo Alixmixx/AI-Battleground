@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useBattleContext } from "@/context/BattleContext";
 import { useRouter } from "next/navigation";
 import { Typography, Button, Layout, Space, Card } from "antd";
-import styled from "styled-components";
 
 const { Title, Text } = Typography;
 const { Content } = Layout;
@@ -17,289 +16,224 @@ type Board = Cell[][];
 type PlayerType = "player1" | "player2";
 
 interface GamePlayer {
-  name: string;
-  symbol: "X" | "O";
-  board: Board;
-  setBoard: (board: Board) => void;
-  opponentName: string;
-  makeMove: () => Promise<void>;
+    name: string;
+    symbol: Cell;
+    board: Board;
+    setBoard: (board: Board) => void;
+    opponentName: string;
+    makeMove: () => Promise<void>;
 }
 
-const StyledContent = styled(Content)`
-  min-height: 100vh;
-  position: relative;
-  padding: 24px;
-`;
-
-const StyledCard = styled(Card)``;
-
-const StyledButton = styled(Button)``;
-
-const GameCell = styled.div<{ cell: string }>`
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: ${(props) => {
-    if (props.cell === "X") return "var(--color-tekken-accent)";
-    if (props.cell === "O") return "var(--color-tekken-primary)";
-    return "transparent";
-  }};
-`;
-
-const GameGrid = styled.div`
-  display: grid;
-  gap: 4px;
-  grid-template-columns: repeat(${GRID_SIZE}, 1fr);
-  margin-bottom: 24px;
-`;
-
 export default function TicTacToe() {
-  const { llm1, llm2, updateScore } = useBattleContext();
-  const router = useRouter();
+    const { llm1, llm2, updateScore } = useBattleContext();
+    const router = useRouter();
 
-  const [board, setBoard] = useState<Board>([]);
-  const [currentPlayerType, setCurrentPlayerType] =
-    useState<PlayerType>("player1");
-  const [gameOver, setGameOver] = useState(false);
-  const [winner, setWinner] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [autoPlay, setAutoPlay] = useState(true);
+    const [board, setBoard] = useState<Board>([]);
+    const [currentPlayerType, setCurrentPlayerType] = useState<PlayerType>("player1");
+    const [gameOver, setGameOver] = useState(false);
+    const [winner, setWinner] = useState<string | null>(null);
+    const [isInitialized, setIsInitialized] = useState(false);
+    const [autoPlay, setAutoPlay] = useState(true);
 
-  if (!llm1 || !llm2) {
-    return <div>Please select both players from the menu first.</div>;
-  }
+    if (!llm1 || !llm2) {
+        return <div>Please select both players from the menu first.</div>;
+    }
 
-  const playersConfig = {
-    player1: {
-      name: llm1,
-      symbol: "X" as const,
-      board,
-      setBoard,
-      opponentName: llm2,
-    },
-    player2: {
-      name: llm2,
-      symbol: "O" as const,
-      board,
-      setBoard,
-      opponentName: llm1,
-    },
-  };
+    const playersConfig = {
+        player1: {
+            name: llm1,
+            symbol: "X" as const,
+            board,
+            setBoard,
+            opponentName: llm2,
+        },
+        player2: {
+            name: llm2,
+            symbol: "O" as const,
+            board,
+            setBoard,
+            opponentName: llm1,
+        },
+    };
 
-  const createPlayer = (playerType: PlayerType): GamePlayer => {
-    const config = playersConfig[playerType];
-    return {
-      ...config,
-      makeMove: async () => {
-        if (gameOver || !isInitialized || board.length === 0) return;
+    const createPlayer = (playerType: PlayerType): GamePlayer => {
+        const config = playersConfig[playerType];
+        return {
+            ...config,
+            makeMove: async () => {
+                if (gameOver || !isInitialized || board.length === 0) return;
 
-        const prompt = `
+                const prompt = `
               You are playing Tic-Tac-Toe on a 3x3 grid as ${config.symbol}. The current board is:
               ${JSON.stringify(board)}
-              Suggest a move by calling the "makeMove" tool with the current board and your chosen coordinates (x, y) between 0 and 2.
+  
               The tool will validate your move and return the result. Only use the "makeMove" tool to suggest a move.
             `;
 
-        const response = await fetch("/api/tictactoe/move", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, llmName: config.name }),
-        });
+                const response = await fetch("/api/tictactoe/move", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt, llmName: config.name }),
+                });
 
-        const data = await response.json();
+                const data = await response.json();
 
-        if (data.error) {
-          console.error("API error:", data.error);
-          return;
-        }
+                if (data.error) {
+                    console.error("API error:", data.error);
+                    return;
+                }
 
-        const toolResult = data.toolResults.find(
-          (r: any) => r.toolName === "makeMove"
-        );
+                const toolResult = data.toolResults.find((r: any) => r.toolName === "makeMove");
 
-        let x: number, y: number;
-        if (toolResult && toolResult.output && toolResult.output.valid) {
-          x = toolResult.output.x;
-          y = toolResult.output.y;
-        } else {
-          console.error("Invalid tool result or coordinates not found");
-          return;
-        }
+                let x: number, y: number;
+                if (toolResult && toolResult.output && toolResult.output.valid) {
+                    x = toolResult.output.x;
+                    y = toolResult.output.y;
+                } else {
+                    console.error("Invalid tool result or coordinates not found");
+                    return;
+                }
 
-        if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) {
-          console.error("Coordinates out of bounds");
-          return;
-        }
+                if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) {
+                    console.error("Coordinates out of bounds");
+                    return;
+                }
 
-        const newBoard = board.map((row) => [...row]);
-        newBoard[x][y] = config.symbol;
-        setBoard(newBoard);
+                const newBoard = board.map(row => [...row]);
+                newBoard[x][y] = config.symbol;
+                setBoard(newBoard);
 
-        const gameResult = checkGameOver(newBoard);
-        if (gameResult) {
-          setGameOver(true);
-          if (gameResult !== "draw") {
-            setWinner(config.name);
-            // TODO - update score  
-            const scores = { [config.name]: 1, [config.opponentName]: 0 };
-            updateScore(scores);
-          }
-        } else {
-          setCurrentPlayerType(
-            playerType === "player1" ? "player2" : "player1"
-          );
-        }
-      },
+                if (checkWin(newBoard, config.symbol)) {
+                    setGameOver(true);
+                    setWinner(config.name);
+                    updateScore({ [config.name]: 1, [config.opponentName]: 0 });
+                } else if (checkDraw(newBoard)) {
+                    setGameOver(true);
+                } else {
+                    setCurrentPlayerType(playerType === "player1" ? "player2" : "player1");
+                }
+            },
+        };
     };
-  };
 
-  const checkGameOver = (board: Board): "X" | "O" | "draw" | null => {
-    // Check rows
-    for (let i = 0; i < GRID_SIZE; i++) {
-      if (
-        board[i][0] !== "empty" &&
-        board[i][0] === board[i][1] &&
-        board[i][1] === board[i][2]
-      ) {
-        return board[i][0] as "X" | "O";
-      }
-    }
+    const checkWin = (board: Board, symbol: Cell): boolean => {
+        // Check rows
+        for (let i = 0; i < GRID_SIZE; i++) {
+            if (board[i].every(cell => cell === symbol)) return true;
+        }
 
-    // Check columns
-    for (let i = 0; i < GRID_SIZE; i++) {
-      if (
-        board[0][i] !== "empty" &&
-        board[0][i] === board[1][i] &&
-        board[1][i] === board[2][i]
-      ) {
-        return board[0][i] as "X" | "O";
-      }
-    }
+        // Check columns
+        for (let j = 0; j < GRID_SIZE; j++) {
+            if (board.every(row => row[j] === symbol)) return true;
+        }
 
-    // Check diagonals
-    if (
-      board[0][0] !== "empty" &&
-      board[0][0] === board[1][1] &&
-      board[1][1] === board[2][2]
-    ) {
-      return board[0][0] as "X" | "O";
-    }
-    if (
-      board[0][2] !== "empty" &&
-      board[0][2] === board[1][1] &&
-      board[1][1] === board[2][0]
-    ) {
-      return board[0][2] as "X" | "O";
-    }
+        // Check diagonals
+        if (board.every((row, i) => row[i] === symbol)) return true;
+        if (board.every((row, i) => row[GRID_SIZE - 1 - i] === symbol)) return true;
 
-    // Check for draw
-    if (board.every((row) => row.every((cell) => cell !== "empty"))) {
-      return "draw";
-    }
-
-    return null;
-  };
-
-  const getCurrentPlayer = (): GamePlayer => createPlayer(currentPlayerType);
-
-  useEffect(() => {
-    const initializeGame = () => {
-      setCurrentPlayerType("player1");
-      setGameOver(false);
-      setWinner(null);
-      setBoard(createEmptyBoard());
-      setIsInitialized(true);
+        return false;
     };
-    initializeGame();
-  }, []);
 
-  const createEmptyBoard = (): Board =>
-    Array(GRID_SIZE)
-      .fill(null)
-      .map(() => Array(GRID_SIZE).fill("empty"));
+    const checkDraw = (board: Board): boolean => {
+        return board.every(row => row.every(cell => cell !== "empty"));
+    };
 
-  useEffect(() => {
-    if (!gameOver && isInitialized && autoPlay) {
-      const timeout = setTimeout(
-        async () => await getCurrentPlayer().makeMove(),
-        MOVE_DELAY
-      );
-      return () => clearTimeout(timeout);
-    }
-  }, [currentPlayerType, gameOver, isInitialized, autoPlay]);
+    const getCurrentPlayer = (): GamePlayer => createPlayer(currentPlayerType);
 
-  const getCellClassName = (cell: Cell): string => {
-    if (cell === "X") return "text-red-500 text-4xl";
-    if (cell === "O") return "text-blue-500 text-4xl";
-    return "text-transparent";
-  };
+    useEffect(() => {
+        const initializeGame = () => {
+            setCurrentPlayerType("player1");
+            setGameOver(false);
+            setWinner(null);
+            setBoard(
+                Array(GRID_SIZE)
+                    .fill(null)
+                    .map(() => Array(GRID_SIZE).fill("empty"))
+            );
+            setIsInitialized(true);
+        };
+        initializeGame();
+    }, []);
 
-  const renderBoard = (board: Board) => (
-    <GameGrid>
-      {board.map((row, i) =>
-        row.map((cell, j) => (
-          <GameCell key={`${i}-${j}`} cell={cell}>
-            {cell !== "empty" ? cell : ""}
-          </GameCell>
-        ))
-      )}
-    </GameGrid>
-  );
+    useEffect(() => {
+        if (!gameOver && isInitialized && autoPlay) {
+            const timeout = setTimeout(async () => await getCurrentPlayer().makeMove(), MOVE_DELAY);
+            return () => clearTimeout(timeout);
+        }
+    }, [currentPlayerType, gameOver, isInitialized, autoPlay]);
 
-  return (
-    <StyledContent>
-      <Space
-        direction="vertical"
-        align="center"
-        size="large"
-        style={{ width: "100%" }}
-      >
-        <Title
-          level={1}
-          style={{
-            color: "var(--color-tekken-text)",
-            textAlign: "center",
-            marginBottom: "24px",
-            textShadow: "0 0 5px var(--color-tekken-accent)",
-          }}
+    const renderBoard = (board: Board) => (
+        <div
+            style={{
+                display: "grid",
+                gap: "4px",
+                gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
+                marginBottom: "24px",
+            }}
         >
-          TIC-TAC-TOE: {llm1} (X) vs {llm2} (O)
-        </Title>
+            {board.map((row, x) =>
+                row.map((cell, y) => (
+                    <div
+                        key={`${x}-${y}`}
+                        style={{
+                            width: "64px",
+                            height: "64px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "24px",
+                            fontWeight: "bold",
+                        }}
+                    >
+                        {cell}
+                    </div>
+                ))
+            )}
+        </div>
+    );
 
-        <Text
-          style={{ fontSize: "1.25rem", color: "var(--color-tekken-text)" }}
+    return (
+        <Content
+            style={{
+                minHeight: "100vh",
+                position: "relative",
+                padding: "24px",
+            }}
         >
-          {!gameOver
-            ? `Current Turn: ${getCurrentPlayer().name} (${getCurrentPlayer().symbol})`
-            : winner
-              ? `Game Over! ${winner} Wins!`
-              : "Game Over! It's a Draw!"}
-        </Text>
+            <Space direction="vertical" align="center" size="large" style={{ width: "100%" }}>
+                <Title
+                    level={1}
+                    style={{
+                        color: "var(--color-text)",
+                        textAlign: "center",
+                        marginBottom: "24px",
+                        textShadow: "0 0 5px var(--color-accent)",
+                    }}
+                >
+                    TIC-TAC-TOE: {llm1} (X) vs {llm2} (O)
+                </Title>
 
-        <StyledCard>
-          {board.length ? renderBoard(board) : <Text>Loading...</Text>}
-        </StyledCard>
+                <Text style={{ fontSize: "1.25rem", color: "var(--color-text)" }}>
+                    {!gameOver
+                        ? `Current Turn: ${getCurrentPlayer().name}`
+                        : winner
+                          ? `Game Over! ${winner} Wins!`
+                          : "Game Over! It's a Draw!"}
+                </Text>
 
-        {!gameOver && (
-          <Space>
-            <StyledButton
-              onClick={async () => await getCurrentPlayer().makeMove()}
-              disabled={!isInitialized}
-            >
-              MAKE MOVE
-            </StyledButton>
-            <StyledButton onClick={() => setAutoPlay(!autoPlay)}>
-              {autoPlay ? "PAUSE" : "AUTO PLAY"}
-            </StyledButton>
-          </Space>
-        )}
+                <Card>{board.length ? renderBoard(board) : <Text>Loading...</Text>}</Card>
 
-        <StyledButton onClick={() => router.push("/")}>
-          BACK TO MENU
-        </StyledButton>
-      </Space>
-    </StyledContent>
-  );
+                {!gameOver && (
+                    <Space>
+                        <Button type="primary" onClick={async () => await getCurrentPlayer().makeMove()} disabled={!isInitialized}>
+                            MAKE MOVE
+                        </Button>
+                        <Button onClick={() => setAutoPlay(!autoPlay)}>{autoPlay ? "PAUSE" : "AUTO PLAY"}</Button>
+                    </Space>
+                )}
+
+                <Button onClick={() => router.push("/")}>BACK TO MENU</Button>
+            </Space>
+        </Content>
+    );
 }

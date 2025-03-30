@@ -1,136 +1,108 @@
 import { LLMType } from "@/lib/llmStore";
 import { Game } from "@/context/BattleContext";
+import { Button, Card, Typography, Space, Row, Col } from "antd";
+
+const { Title, Text } = Typography;
 
 interface FighterCardProps {
-  llm: LLMType;
-  isSelected: boolean;
-  onClick: (llm: LLMType) => void;
-  disabled: boolean;
+    llm: LLMType;
+    isSelected: boolean;
+    onClick: (llm: LLMType) => void;
+    disabled: boolean;
 }
 
-export const FighterCard = ({
-  llm,
-  isSelected,
-  onClick,
-  disabled,
-}: FighterCardProps) => (
-  <button
-    onClick={() => !disabled && onClick(llm)}
-    className={`fighter-card ${isSelected ? "selected" : ""} ${
-      disabled ? "opacity-50 cursor-not-allowed" : ""
-    }`}
-    disabled={disabled}
-  >
-    <div className="text-green-400 text-sm font-bold text-center">{llm}</div>
-  </button>
+export const FighterCard = ({ llm, isSelected, onClick, disabled }: FighterCardProps) => (
+    <Button
+        onClick={() => !disabled && onClick(llm)}
+        disabled={disabled}
+        type={isSelected ? "primary" : "default"}
+        style={{ width: "100%" }}
+    >
+        <Text>{llm}</Text>
+    </Button>
 );
 
 interface FighterPortraitProps {
-  llm: LLMType | undefined;
-  side: string;
+    llm: LLMType | undefined;
+    side: string;
 }
 
 export const FighterPortrait = ({ llm, side }: FighterPortraitProps) => (
-  <div className="fighter-display">
-    <div className="fighter-portrait">
-      <div className="text-green-400 text-2xl font-bold">{llm ?? "???"}</div>
-    </div>
-    <div className="fighter-name">{llm ?? side}</div>
-  </div>
+    <Card style={{ textAlign: "center" }}>
+        <Title level={3}>{llm ?? "???"}</Title>
+        <Text>{llm ?? side}</Text>
+    </Card>
 );
 
 interface VSScreenProps {
-  fighter1: LLMType | undefined;
-  fighter2: LLMType | undefined;
+    fighter1: LLMType | undefined;
+    fighter2: LLMType | undefined;
 }
 
 export const VSScreen = ({ fighter1, fighter2 }: VSScreenProps) => (
-  <div className="flex items-center justify-between w-full max-w-4xl mb-8">
-    <FighterPortrait llm={fighter1} side="Player 1" />
-    <div className="vs-text">VS</div>
-    <FighterPortrait llm={fighter2} side="Player 2" />
-  </div>
+    <Row justify="space-between" align="middle" style={{ width: "100%", maxWidth: "1200px", marginBottom: "2rem" }}>
+        <Col span={10}>
+            <FighterPortrait llm={fighter1} side="Player 1" />
+        </Col>
+        <Col span={4} style={{ textAlign: "center" }}>
+            <Title level={2}>VS</Title>
+        </Col>
+        <Col span={10}>
+            <FighterPortrait llm={fighter2} side="Player 2" />
+        </Col>
+    </Row>
 );
 
 interface FighterGridProps {
-  fighters: LLMType[];
-  selectedFighter1: LLMType | undefined;
-  selectedFighter2: LLMType | undefined;
-  selectionStep: number;
-  onSelect: (fighter: LLMType) => void;
+    fighters: LLMType[];
+    selectedFighter1: LLMType | undefined;
+    selectedFighter2: LLMType | undefined;
+    selectionStep: number;
+    onSelect: (fighter: LLMType) => void;
 }
 
-export const FighterGrid = ({
-  fighters,
-  selectedFighter1,
-  selectedFighter2,
-  selectionStep,
-  onSelect,
-}: FighterGridProps) => (
-  <div className="fighter-grid">
-    {fighters.map((fighter) => (
-      <FighterCard
-        key={fighter}
-        llm={fighter}
-        isSelected={
-          (selectionStep === 1 && fighter === selectedFighter1) ||
-          (selectionStep === 2 && fighter === selectedFighter2)
-        }
-        onClick={onSelect}
-        disabled={
-          (selectionStep === 2 && fighter === selectedFighter1) ||
-          (selectionStep === 1 && selectedFighter2 === fighter)
-        }
-      />
-    ))}
-  </div>
+export const FighterGrid = ({ fighters, selectedFighter1, selectedFighter2, selectionStep, onSelect }: FighterGridProps) => (
+    <Row gutter={[16, 16]}>
+        {fighters.map(fighter => (
+            <Col xs={12} sm={8} md={6} lg={4} key={fighter}>
+                <FighterCard
+                    llm={fighter}
+                    isSelected={
+                        (selectionStep === 1 && fighter === selectedFighter1) || (selectionStep === 2 && fighter === selectedFighter2)
+                    }
+                    onClick={onSelect}
+                    disabled={
+                        (selectionStep === 2 && fighter === selectedFighter1) || (selectionStep === 1 && selectedFighter2 === fighter)
+                    }
+                />
+            </Col>
+        ))}
+    </Row>
 );
 
 interface SelectionControlsProps {
-  onReset: () => void;
-  onStart: () => void;
-  gameOptions: Game[];
-  selectedGame: Game | undefined;
-  onGameSelect: (game: Game) => void;
-  disableStart: boolean;
+    onReset: () => void;
+    onStart: () => void;
+    gameOptions: Game[];
+    selectedGame: Game | undefined;
+    onGameSelect: (game: Game) => void;
+    disableStart: boolean;
 }
 
-export const SelectionControls = ({
-  onReset,
-  onStart,
-  gameOptions,
-  selectedGame,
-  onGameSelect,
-  disableStart,
-}: SelectionControlsProps) => (
-  <div className="mt-8 flex gap-4">
-    <button
-      onClick={onReset}
-      className="tekken-button bg-red-900 hover:bg-red-800"
-    >
-      RESET
-    </button>
-    <button
-      onClick={onStart}
-      disabled={disableStart}
-      className="tekken-button disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      START BATTLE
-    </button>
-    <div className="flex gap-2">
-      {gameOptions.map((game) => (
-        <button
-          key={game}
-          onClick={() => onGameSelect(game)}
-          className={`px-4 py-2 uppercase ${
-            selectedGame === game
-              ? "bg-green-700 text-white"
-              : "bg-gray-700 text-green-400 hover:bg-gray-600"
-          }`}
-        >
-          {game}
-        </button>
-      ))}
-    </div>
-  </div>
+export const SelectionControls = ({ onReset, onStart, gameOptions, selectedGame, onGameSelect, disableStart }: SelectionControlsProps) => (
+    <Space size="large" style={{ marginTop: "2rem" }}>
+        <Button danger onClick={onReset}>
+            RESET
+        </Button>
+        <Button type="primary" onClick={onStart} disabled={disableStart}>
+            START BATTLE
+        </Button>
+        <Space>
+            {gameOptions.map(game => (
+                <Button key={game} onClick={() => onGameSelect(game)} type={selectedGame === game ? "primary" : "default"}>
+                    {game}
+                </Button>
+            ))}
+        </Space>
+    </Space>
 );
