@@ -1,6 +1,6 @@
 import { LLMType } from "@/lib/llmStore";
 import { Game } from "@/context/BattleContext";
-import { Button, Card, Typography, Space, Row, Col } from "antd";
+import { Button, Card, Typography, Space, Row, Col, Image } from "antd";
 
 const { Title, Text } = Typography;
 
@@ -29,6 +29,7 @@ interface FighterPortraitProps {
 
 export const FighterPortrait = ({ llm, side }: FighterPortraitProps) => (
     <Card style={{ textAlign: "center" }}>
+        <Image width={256} src="/assets/images/fighters/gpt4o.png" />
         <Title level={3}>{llm ?? "???"}</Title>
         <Text>{llm ?? side}</Text>
     </Card>
