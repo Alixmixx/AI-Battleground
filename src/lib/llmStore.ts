@@ -5,6 +5,15 @@ export const LLM_REGISTRY = [
   {
     name: "GPT-4o" as const,
   },
+  {
+    name: "Claude" as const,
+  },
+  // {
+  //   name: "Grok" as const,
+  // },
+  // {
+  //   name: "Gemini" as const,
+  // },
 ] as const;
 
 // Derive LLMType from the registry
