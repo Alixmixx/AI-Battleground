@@ -3,10 +3,20 @@
 import { useState, useEffect } from "react";
 import { useBattleContext } from "@/context/BattleContext";
 import { useRouter } from "next/navigation";
-import { Typography, Button, Layout, Space, Card, Row, Col } from "antd";
+import { Typography, Button, Space } from "antd";
+import styled from "styled-components";
+import { themeColors } from "@/lib/theme";
+import {
+    GameArena,
+    GameBackground,
+    GameContent,
+    HeaderContainer,
+    GameTitle,
+    TitleUnderline,
+    VSScreen,
+} from "@/components/FighterComponents";
 
 const { Title, Text } = Typography;
-const { Content } = Layout;
 
 const GRID_SIZE = 10;
 const MOVE_DELAY = 500;
@@ -48,7 +58,17 @@ export default function Battleship() {
     const [autoPlay, setAutoPlay] = useState(true);
 
     if (!llm1 || !llm2) {
-        return <div>Please select both players from the menu first.</div>;
+        return (
+            <GameArena>
+                <GameBackground />
+                <GameContent>
+                    <ErrorMessage>Please select both players from the menu first.</ErrorMessage>
+                    <Button type="primary" onClick={() => router.push("/")} size="large">
+                        BACK TO MENU
+                    </Button>
+                </GameContent>
+            </GameArena>
+        );
     }
 
     const playersConfig = {
@@ -130,6 +150,7 @@ export default function Battleship() {
                 } else if (newOpponentBoard[x][y] === "empty") {
                     // It's a miss
                     newPlayerView[x][y] = "miss";
+                    newOpponentBoard[x][y] = "miss";
                 }
 
                 // Update the player's view
@@ -165,8 +186,16 @@ export default function Battleship() {
 
             setPlayer1Board(placeShips(emptyBoard));
             setPlayer2Board(placeShips(emptyBoard));
-            setPlayer1View(emptyBoard);
-            setPlayer2View(emptyBoard);
+            setPlayer1View(
+                Array(GRID_SIZE)
+                    .fill(null)
+                    .map(() => Array(GRID_SIZE).fill("empty"))
+            );
+            setPlayer2View(
+                Array(GRID_SIZE)
+                    .fill(null)
+                    .map(() => Array(GRID_SIZE).fill("empty"))
+            );
             setIsInitialized(true);
         };
         initializeGame();
@@ -214,135 +243,495 @@ export default function Battleship() {
         }
     }, [currentPlayerType, gameOver, isInitialized, autoPlay]);
 
-    const renderBoard = (board: Board, hidden: boolean = false) => (
-        <div
-            style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${GRID_SIZE}, 38px)`,
-                gap: "3px",
-                margin: "0 auto",
-                border: "2px solid #e0e0e0",
-                borderRadius: "4px",
-                padding: "10px",
-                background: "#f5f5f5",
-                maxWidth: "fit-content",
-                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-            }}
-        >
-            {board.map((row, x) =>
-                row.map((cell, y) => (
-                    <div
-                        key={`${x}-${y}`}
-                        style={{
-                            width: "38px",
-                            height: "38px",
-                            backgroundColor:
-                                cell === "hit"
-                                    ? "#ff4d4d"
-                                    : cell === "miss"
-                                      ? "#66a3ff"
-                                      : cell === "ship" && !hidden
-                                        ? "#b0b0b0"
-                                        : "#f8f8f8",
-                            border: "1px solid #e0e0e0",
-                            transition: "all 0.3s ease",
-                            position: "relative",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: hidden ? "pointer" : "default",
-                        }}
-                        onMouseEnter={e => {
-                            if (hidden && cell === "empty") {
-                                e.currentTarget.style.boxShadow = "0 0 0 3px #ff6600";
-                                e.currentTarget.style.backgroundColor = "rgba(255, 102, 0, 0.2)";
-                            }
-                        }}
-                        onMouseLeave={e => {
-                            if (hidden && cell === "empty") {
-                                e.currentTarget.style.boxShadow = "none";
-                                e.currentTarget.style.backgroundColor = "#f8f8f8";
-                            }
-                        }}
-                    >
-                        {(cell === "hit" || cell === "miss") && (
-                            <span
-                                style={{
-                                    fontSize: "20px",
-                                    color: "#ffffff",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                {cell === "hit" ? "✘" : "○"}
-                            </span>
-                        )}
-                    </div>
-                ))
-            )}
-        </div>
+    const renderBoard = (board: Board, hidden: boolean = false, isPlayerOne: boolean = true) => (
+        <BattleGrid>
+            {/* Row headers - numbers */}
+            <GridHeaders>
+                {Array(GRID_SIZE)
+                    .fill(null)
+                    .map((_, i) => (
+                        <GridHeader key={`row-${i}`}>{i}</GridHeader>
+                    ))}
+            </GridHeaders>
+
+            {board.map((row, x) => (
+                <GridRow key={`row-${x}`}>
+                    {/* Column header - letter */}
+                    <GridHeader>{String.fromCharCode(65 + x)}</GridHeader>
+
+                    {row.map((cell, y) => (
+                        <GridCell key={`${x}-${y}`} $cellType={cell} $hidden={hidden && cell === "ship"} $isPlayerOne={isPlayerOne}>
+                            {cell === "hit" && <HitMarker $isPlayerOne={!isPlayerOne}>✘</HitMarker>}
+                            {cell === "miss" && <MissMarker $isPlayerOne={!isPlayerOne}>●</MissMarker>}
+                        </GridCell>
+                    ))}
+                </GridRow>
+            ))}
+        </BattleGrid>
     );
 
     return (
-        <Content style={{ padding: "24px" }}>
-            <Space direction="vertical" align="center" size="large" style={{ width: "100%" }}>
-                <Title
-                    level={1}
-                    style={{
-                        color: "#333333",
-                        textAlign: "center",
-                        marginBottom: "24px",
-                        textShadow: "0 0 5px #ff6600",
-                    }}
-                >
-                    BATTLESHIP: {llm1} vs {llm2}
-                </Title>
+        <GameArena>
+            <GameBackground />
 
-                <Text
-                    style={{
-                        fontSize: "20px",
-                        display: "block",
-                        textAlign: "center",
-                        fontWeight: "bold",
-                        color: gameOver ? "#ff6600" : "#333333",
-                        padding: "10px 0",
-                    }}
-                >
-                    {!gameOver
-                        ? `Current Turn: ${getCurrentPlayer().name}`
-                        : winner
-                          ? `Game Over! ${winner} Wins!`
-                          : "Game Over! It's a Draw!"}
-                </Text>
+            {/* Scanline effect */}
+            <Scanline />
 
-                <Row gutter={[24, 24]} justify="center">
-                    <Col>
-                        <Card title={`${llm1}'s Fleet`}>{renderBoard(player1Board)}</Card>
-                    </Col>
-                    <Col>
-                        <Card title={`${llm2}'s Fleet`}>{renderBoard(player2Board)}</Card>
-                    </Col>
-                </Row>
+            <GameContent>
+                <HeaderContainer>
+                    <GameTitle level={1}>NAVAL BATTLE</GameTitle>
+                    <TitleUnderline />
+                </HeaderContainer>
 
-                <Row gutter={[24, 24]} justify="center">
-                    <Col>
-                        <Card title={`${llm1}'s View of Opponent`}>{renderBoard(player1View, true)}</Card>
-                    </Col>
-                    <Col>
-                        <Card title={`${llm2}'s View of Opponent`}>{renderBoard(player2View, true)}</Card>
-                    </Col>
-                </Row>
+                {/* VS Screen with fighters */}
+                <div style={{ marginBottom: "40px", position: "relative" }}>
+                    <VSScreen fighter1={llm1} fighter2={llm2} />
 
-                {!gameOver && (
-                    <Space>
-                        <Button type="primary" onClick={async () => await getCurrentPlayer().makeMove()} disabled={!isInitialized}>
-                            MAKE MOVE
-                        </Button>
-                        <Button onClick={() => setAutoPlay(!autoPlay)}>{autoPlay ? "PAUSE" : "AUTO PLAY"}</Button>
-                    </Space>
-                )}
+                    {/* Current player indicator */}
+                    <TurnIndicator>
+                        <TurnPhase level={3} $isPlayerOne={currentPlayerType === "player1"} $gameOver={gameOver}>
+                            {!gameOver ? `${getCurrentPlayer().name}'s Turn` : winner ? `${winner} Wins!` : "It's a Draw!"}
+                        </TurnPhase>
+                    </TurnIndicator>
+                </div>
 
-                <Button onClick={() => router.push("/")}>BACK TO MENU</Button>
-            </Space>
-        </Content>
+                {/* Game boards */}
+                <BattleContainer>
+                    <BattlefieldPair>
+                        <BattlefieldCard>
+                            <BattlefieldTitle $isPlayerOne={true}>{llm1}'s Fleet</BattlefieldTitle>
+                            {renderBoard(player1Board, false, true)}
+                        </BattlefieldCard>
+
+                        <BattlefieldCard>
+                            <BattlefieldTitle $isPlayerOne={false}>{llm2}'s Fleet</BattlefieldTitle>
+                            {renderBoard(player2Board, false, false)}
+                        </BattlefieldCard>
+                    </BattlefieldPair>
+
+                    <BattleInstructions>
+                        <BattleInstructionsTitle>BATTLE STATUS</BattleInstructionsTitle>
+                        <ShipLegend>
+                            <LegendItem $type="empty">Empty Sea</LegendItem>
+                            <LegendItem $type="ship">Ship</LegendItem>
+                            <LegendItem $type="hit">Hit</LegendItem>
+                            <LegendItem $type="miss">Miss</LegendItem>
+                        </ShipLegend>
+                        <StatusText>
+                            {gameOver
+                                ? `Battle concluded. ${winner} emerges victorious!`
+                                : `Commander ${getCurrentPlayer().name} is targeting enemy waters...`}
+                        </StatusText>
+                    </BattleInstructions>
+
+                    <BattlefieldPair>
+                        <BattlefieldCard>
+                            <BattlefieldTitle $isPlayerOne={true}>{llm1}'s Radar</BattlefieldTitle>
+                            {renderBoard(player1View, true, true)}
+                        </BattlefieldCard>
+
+                        <BattlefieldCard>
+                            <BattlefieldTitle $isPlayerOne={false}>{llm2}'s Radar</BattlefieldTitle>
+                            {renderBoard(player2View, true, false)}
+                        </BattlefieldCard>
+                    </BattlefieldPair>
+                </BattleContainer>
+
+                {/* Game Controls */}
+                <ControlContainer>
+                    {!gameOver && (
+                        <>
+                            <ActionButton
+                                type="primary"
+                                onClick={async () => await getCurrentPlayer().makeMove()}
+                                disabled={!isInitialized}
+                            >
+                                FIRE TORPEDO
+                            </ActionButton>
+                            <ActionButton onClick={() => setAutoPlay(!autoPlay)} $isAutoPlay={autoPlay}>
+                                {autoPlay ? "PAUSE BATTLE" : "AUTO BATTLE"}
+                            </ActionButton>
+                        </>
+                    )}
+                    <MenuButton onClick={() => router.push("/")}>BACK TO MENU</MenuButton>
+                </ControlContainer>
+            </GameContent>
+        </GameArena>
     );
 }
+
+// Styled Components
+const ErrorMessage = styled(Title)`
+    color: ${themeColors.accent};
+    text-align: center;
+    margin-bottom: 40px;
+`;
+
+const Scanline = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.03) 50%, rgba(255, 255, 255, 0) 100%);
+    animation: scanline 8s linear infinite;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 10;
+
+    @keyframes scanline {
+        0% {
+            transform: translateY(-100%);
+        }
+        100% {
+            transform: translateY(100%);
+        }
+    }
+`;
+
+const TurnIndicator = styled.div`
+    text-align: center;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    position: relative;
+`;
+
+const TurnPhase = styled(Title)<{
+    $isPlayerOne?: boolean;
+    $gameOver?: boolean;
+}>`
+    color: ${props => {
+        if (props.$gameOver) return themeColors.highlight;
+        return props.$isPlayerOne ? themeColors.accentBlue : themeColors.accent;
+    }};
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    display: inline-block;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px 30px;
+    border-radius: 4px;
+    box-shadow: ${props => {
+        if (props.$gameOver) return "0 0 15px rgba(255, 255, 255, 0.5)";
+        return props.$isPlayerOne ? themeColors.glowBlue : themeColors.glowAccent;
+    }};
+    margin: 0;
+    animation: ${props => (props.$gameOver ? "pulse 1.5s infinite" : "none")};
+
+    @keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.7;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+`;
+
+const BattleContainer = styled.div`
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid ${themeColors.border};
+    margin-bottom: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+`;
+
+const BattlefieldPair = styled.div`
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    width: 100%;
+    flex-wrap: wrap;
+`;
+
+const BattlefieldCard = styled.div`
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid ${themeColors.border};
+    flex: 1;
+    min-width: 450px;
+    max-width: 550px;
+
+    @media (max-width: 1024px) {
+        min-width: 350px;
+    }
+
+    @media (max-width: 768px) {
+        min-width: 300px;
+    }
+`;
+
+const BattlefieldTitle = styled.h3<{
+    $isPlayerOne: boolean;
+}>`
+    color: ${props => (props.$isPlayerOne ? themeColors.accentBlue : themeColors.accent)};
+    text-shadow: ${props => (props.$isPlayerOne ? themeColors.glowBlue : themeColors.glowAccent)};
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    text-align: center;
+    font-weight: bold;
+`;
+
+const BattleGrid = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 10px;
+    position: relative;
+`;
+
+const GridRow = styled.div`
+    display: flex;
+    gap: 3px;
+`;
+
+const GridHeaders = styled(GridRow)`
+    padding-left: 25px; /* Space for row headers */
+`;
+
+const GridHeader = styled.div`
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: ${themeColors.text};
+    font-weight: bold;
+    font-size: 0.8rem;
+`;
+
+const GridCell = styled.div<{
+    $cellType: Cell;
+    $hidden: boolean;
+    $isPlayerOne: boolean;
+}>`
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    cursor: default;
+    position: relative;
+
+    /* Cell type styles */
+    background-color: ${props => {
+        if (props.$hidden) return themeColors.boardEmpty;
+        switch (props.$cellType) {
+            case "ship":
+                return themeColors.boardShip;
+            case "hit":
+                return "transparent";
+            case "miss":
+                return "transparent";
+            default:
+                return themeColors.boardEmpty;
+        }
+    }};
+
+    /* Border */
+    border: 1px solid
+        ${props => {
+            switch (props.$cellType) {
+                case "ship":
+                    return props.$isPlayerOne ? themeColors.accentBlue : themeColors.accent;
+                case "hit":
+                    return props.$isPlayerOne ? themeColors.accentBlue : themeColors.accent;
+                case "miss":
+                    return props.$isPlayerOne ? themeColors.accentBlue : themeColors.accent;
+                default:
+                    return themeColors.border;
+            }
+        }};
+
+    /* Hover effect */
+    &:hover {
+        transform: ${props => (props.$cellType === "empty" ? "scale(1.05)" : "none")};
+        box-shadow: ${props => (props.$cellType === "empty" ? "0 0 5px rgba(255, 255, 255, 0.5)" : "none")};
+    }
+`;
+
+const HitMarker = styled.span<{
+    $isPlayerOne: boolean;
+}>`
+    color: ${props => (props.$isPlayerOne ? themeColors.accentBlue : themeColors.accent)};
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 0 0 5px ${props => (props.$isPlayerOne ? themeColors.accentBlue : themeColors.accent)};
+    animation: hitAnimation 0.5s ease-in-out;
+
+    @keyframes hitAnimation {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+`;
+
+const MissMarker = styled.span<{
+    $isPlayerOne: boolean;
+}>`
+    color: ${props => (props.$isPlayerOne ? themeColors.accentBlue : themeColors.accent)};
+    font-size: 12px;
+    opacity: 0.7;
+    animation: missAnimation 0.5s ease-in-out;
+
+    @keyframes missAnimation {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 0.7;
+        }
+    }
+`;
+
+const BattleInstructions = styled.div`
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 20px;
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+    border: 1px solid ${themeColors.border};
+`;
+
+const BattleInstructionsTitle = styled.h3`
+    color: ${themeColors.text};
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+`;
+
+const ShipLegend = styled.div`
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+`;
+
+const LegendItem = styled.div<{
+    $type: Cell;
+}>`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: ${themeColors.text};
+    font-size: 0.9rem;
+
+    &:before {
+        content: "";
+        display: block;
+        width: 15px;
+        height: 15px;
+        border-radius: 3px;
+        background-color: ${props => {
+            switch (props.$type) {
+                case "ship":
+                    return themeColors.boardShip;
+                case "hit":
+                    return themeColors.boardHit;
+                case "miss":
+                    return themeColors.boardMiss;
+                default:
+                    return themeColors.boardEmpty;
+            }
+        }};
+        border: 1px solid
+            ${props => {
+                switch (props.$type) {
+                    case "ship":
+                        return themeColors.border;
+                    case "hit":
+                        return themeColors.accent;
+                    case "miss":
+                        return themeColors.accentBlue;
+                    default:
+                        return themeColors.border;
+                }
+            }};
+    }
+`;
+
+const StatusText = styled.p`
+    color: ${themeColors.text};
+    font-size: 1.1rem;
+    margin: 0;
+    font-style: italic;
+`;
+
+const ControlContainer = styled.div`
+    width: 100%;
+    padding: 20px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+`;
+
+const ActionButton = styled(Button)<{
+    $isAutoPlay?: boolean;
+}>`
+    min-width: 150px;
+    height: 48px;
+    letter-spacing: 2px;
+    font-weight: bold;
+    text-transform: uppercase;
+    background: ${props =>
+        props.$isAutoPlay ? themeColors.secondary : props.type === "primary" ? themeColors.accent : themeColors.secondary};
+    color: ${themeColors.text};
+    border: 1px solid
+        ${props => (props.$isAutoPlay ? themeColors.border : props.type === "primary" ? themeColors.accent : themeColors.accentBlue)};
+    box-shadow: ${props => (props.$isAutoPlay ? "none" : props.type === "primary" ? themeColors.glowAccent : themeColors.glowBlue)};
+
+    &:hover:not(:disabled) {
+        background: ${props => (props.type === "primary" ? themeColors.accent : themeColors.accentBlue)};
+        border-color: ${props => (props.type === "primary" ? themeColors.accent : themeColors.accentBlue)};
+        transform: translateY(-2px);
+    }
+`;
+
+const MenuButton = styled(Button)`
+    min-width: 150px;
+    height: 48px;
+    letter-spacing: 2px;
+    font-weight: bold;
+    text-transform: uppercase;
+    background: ${themeColors.secondary};
+    color: ${themeColors.text};
+    border: 1px solid ${themeColors.border};
+
+    &:hover {
+        border-color: ${themeColors.text};
+        color: ${themeColors.text};
+        transform: translateY(-2px);
+    }
+`;
