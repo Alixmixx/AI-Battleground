@@ -133,9 +133,10 @@ export const FighterGrid = ({ fighters, selectedFighter1, selectedFighter2, sele
                         (selectionStep === 1 && fighter === selectedFighter1) || (selectionStep === 2 && fighter === selectedFighter2)
                     }
                     onClick={onSelect}
-                    disabled={
-                        (selectionStep === 2 && fighter === selectedFighter1) || (selectionStep === 1 && selectedFighter2 === fighter)
-                    }
+                    disabled={false}
+                    // disabled={
+                    //     (selectionStep === 2 && fighter === selectedFighter1) || (selectionStep === 1 && selectedFighter2 === fighter)
+                    // }
                     selectionStep={fighter === selectedFighter1 ? 1 : fighter === selectedFighter2 ? 2 : selectionStep}
                 />
             </Col>

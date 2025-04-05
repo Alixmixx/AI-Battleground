@@ -32,7 +32,7 @@ interface GamePlayer {
     board: Board;
     setBoard: (board: Board) => void;
     opponentName: string;
-    makeMove: () => Promise<void>;
+    makeMove: (playerX?: number, playerY?: number) => Promise<void>;
 }
 
 export default function TicTacToe() {
@@ -44,7 +44,8 @@ export default function TicTacToe() {
     const [gameOver, setGameOver] = useState(false);
     const [winner, setWinner] = useState<string | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
-    const [autoPlay, setAutoPlay] = useState(true);
+    const [autoPlay, setAutoPlay] = useState(false);
+    const [hasHuman, setHasHuman] = useState(false);
 
     if (!llm1 || !llm2) {
         return (
@@ -77,11 +78,16 @@ export default function TicTacToe() {
         },
     };
 
+    useEffect(() => {
+        if (playersConfig.player1.name === "Human" || playersConfig.player2.name === "Human")
+            setHasHuman(true);
+    }, [playersConfig]);
+
     const createPlayer = (playerType: PlayerType): GamePlayer => {
         const config = playersConfig[playerType];
         return {
             ...config,
-            makeMove: async () => {
+            makeMove: async (playerX?: number, playerY?: number) => {
                 if (gameOver || !isInitialized || board.length === 0) return;
 
                 let response;
@@ -91,7 +97,7 @@ export default function TicTacToe() {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
-                            prompt: `{"name":"makeMove","input":{"board":${JSON.stringify(board)},"x":1,"y":2}}`,
+                            prompt: `{"name":"makeMove","input":{"board":${JSON.stringify(board)},"x":${playerX},"y":${playerY}}}`,
                             llmName: config.name,
                         }),
                     });
@@ -211,7 +217,14 @@ export default function TicTacToe() {
         <GameGrid>
             {board.map((row, x) =>
                 row.map((cell, y) => (
-                    <GameCell key={`${x}-${y}`} $isEmpty={cell === "empty"} $isPlayerOne={cell === "X"}>
+                    <GameCell
+                        key={`${x}-${y}`}
+                        $isEmpty={cell === "empty"}
+                        $isPlayerOne={cell === "X"}
+                        onClick={async () => {
+                            await getCurrentPlayer().makeMove(x, y);
+                        }}
+                    >
                         {renderCell(cell, x, y)}
                     </GameCell>
                 ))
@@ -277,7 +290,7 @@ export default function TicTacToe() {
                             >
                                 MAKE MOVE
                             </ActionButton>
-                            <ActionButton onClick={() => setAutoPlay(!autoPlay)} $isAutoPlay={autoPlay}>
+                            <ActionButton onClick={() => setAutoPlay(!autoPlay)} $isAutoPlay={autoPlay} disabled={hasHuman}>
                                 {autoPlay ? "PAUSE" : "AUTO PLAY"}
                             </ActionButton>
                         </>
