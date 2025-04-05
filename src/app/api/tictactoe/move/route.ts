@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { BaseLLM, GPT4o, GPT35, Claude, Gemini } from "@/lib/llm";
+import { BaseLLM, GPT4o, GPT35, Claude, Gemini, Human } from "@/lib/llm";
 import { TicTacToeTool } from "@/lib/tool/TicTacToe";
 import logger from "@/lib/logger";
 
@@ -22,6 +22,9 @@ export async function POST(request: Request) {
                 break;
             case "Gemini":
                 llm = new Gemini(process.env.GOOGLE_API_KEY);
+                break;
+            case "Human":
+                llm = new Human("")
                 break;
             default:
                 llm = new GPT4o(process.env.OPENAI_API_KEY);

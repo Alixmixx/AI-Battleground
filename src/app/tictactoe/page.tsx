@@ -84,18 +84,31 @@ export default function TicTacToe() {
             makeMove: async () => {
                 if (gameOver || !isInitialized || board.length === 0) return;
 
-                const prompt = `
-          You are playing Tic-Tac-Toe on a 3x3 grid as ${config.symbol}. The current board is:
-          ${JSON.stringify(board)}
+                let response;
+                if (config.name === "Human") {
+                    console.log("Human turn");
+                    response = await fetch("/api/tictactoe/move", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            prompt: `{"name":"makeMove","input":{"board":${JSON.stringify(board)},"x":1,"y":2}}`,
+                            llmName: config.name,
+                        }),
+                    });
+                } else {
+                    const prompt = `
+                    You are playing Tic-Tac-Toe on a 3x3 grid as ${config.symbol}. The current board is:
+                    ${JSON.stringify(board)}
+                    
+                    The tool will validate your move and return the result. Only use the "makeMove" tool to suggest a move.
+                    `;
 
-          The tool will validate your move and return the result. Only use the "makeMove" tool to suggest a move.
-        `;
-
-                const response = await fetch("/api/tictactoe/move", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ prompt, llmName: config.name }),
-                });
+                    response = await fetch("/api/tictactoe/move", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ prompt, llmName: config.name }),
+                    });
+                }
 
                 const data = await response.json();
 

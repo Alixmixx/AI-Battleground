@@ -4,3 +4,4 @@ export * from "./GPT35";
 export * from "./Claude";
 export * from "./Gemini";
 
+export * from "./Human";

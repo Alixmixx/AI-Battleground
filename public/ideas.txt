@@ -1,0 +1,5 @@
+Game ideas
+
+Mastermind - One LLM picks a secret code and the other guesses it
+Connect Four
+Card games - 

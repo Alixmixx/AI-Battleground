@@ -14,6 +14,9 @@ export const LLM_REGISTRY = [
     {
         name: "Gemini" as const,
     },
+    {
+        name: "Human" as const,
+    },
 ] as const;
 
 // Derive LLMType from the registry
