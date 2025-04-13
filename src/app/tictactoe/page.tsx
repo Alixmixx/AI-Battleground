@@ -79,8 +79,7 @@ export default function TicTacToe() {
     };
 
     useEffect(() => {
-        if (playersConfig.player1.name === "Human" || playersConfig.player2.name === "Human")
-            setHasHuman(true);
+        if (playersConfig.player1.name === "Human" || playersConfig.player2.name === "Human") setHasHuman(true);
     }, [playersConfig]);
 
     const createPlayer = (playerType: PlayerType): GamePlayer => {
@@ -179,6 +178,7 @@ export default function TicTacToe() {
     };
 
     const getCurrentPlayer = (): GamePlayer => createPlayer(currentPlayerType);
+    const isHumanTurn = () => getCurrentPlayer().name === "Human";
 
     useEffect(() => {
         const initializeGame = () => {
@@ -221,6 +221,7 @@ export default function TicTacToe() {
                         key={`${x}-${y}`}
                         $isEmpty={cell === "empty"}
                         $isPlayerOne={cell === "X"}
+                        $isHumanTurn={isHumanTurn() && cell === "empty" && !gameOver}
                         onClick={async () => {
                             await getCurrentPlayer().makeMove(x, y);
                         }}
@@ -286,9 +287,9 @@ export default function TicTacToe() {
                             <ActionButton
                                 type="primary"
                                 onClick={async () => await getCurrentPlayer().makeMove()}
-                                disabled={!isInitialized}
+                                disabled={!isInitialized || isHumanTurn()}
                             >
-                                MAKE MOVE
+                                {isHumanTurn() ? "YOUR TURN" : "MAKE MOVE"}
                             </ActionButton>
                             <ActionButton onClick={() => setAutoPlay(!autoPlay)} $isAutoPlay={autoPlay} disabled={hasHuman}>
                                 {autoPlay ? "PAUSE" : "AUTO PLAY"}
@@ -337,6 +338,7 @@ const TurnIndicator = styled.div`
     margin-top: 30px;
     margin-bottom: 20px;
     position: relative;
+    z-index: 5;
 `;
 
 const TurnPhase = styled(Title)<{
@@ -439,6 +441,7 @@ const GameGrid = styled.div`
 const GameCell = styled.div<{
     $isEmpty: boolean;
     $isPlayerOne?: boolean;
+    $isHumanTurn?: boolean;
 }>`
     width: 100px;
     height: 100px;
