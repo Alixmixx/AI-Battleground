@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { LLMType, getAvailableLLMs } from "@/lib/llmStore";
 
-export type Game = "battleship" | "tictactoe";
+export type Game = "battleship" | "tictactoe" | "mastermind";
 
 interface BattleContextType {
   llm1: LLMType | undefined;

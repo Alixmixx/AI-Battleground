@@ -28,7 +28,7 @@ export default function GameMenu() {
   const [animatedTitle, setAnimatedTitle] = useState<string>("");
   const router = useRouter();
 
-  const gameOptions: Game[] = ["battleship", "tictactoe"];
+  const gameOptions: Game[] = ["battleship", "tictactoe", "mastermind"];
   
   // Animate the title
   useEffect(() => {
