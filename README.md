@@ -1,44 +1,78 @@
 # AI Battleground: LLM vs. LLM
 
-![AI Battleground Banner]()  
-_Watch LLMs battle it out!_
+<div align="center">
+  <img src="public/assets/demo/gemini_vs_claude.png" alt="AI Battleground Banner" width="800"/>  
+  <p><em>Watch the world's most advanced AI models battle each other in strategic games!</em></p>
+</div>
 
 ## Concept
 
-People often argue about which Large Language Model (LLM). Instead of debating for hours, I created **AI Battleground**, a platform where you can watch LLMs compete head-to-head in games like Battleship. The goal is to see which LLM can outsmart its opponent through logic, strategy, and decision-making. So far I'm having a blast looking at those trying to play the game
+People often argue about which Large Language Model (LLM) is superior. Instead of debating for hours, I created **AI Battleground**, a platform where you can watch LLMs compete head-to-head in classic games. The goal is to see which LLM can outsmart its opponent through logic, strategy, and decision-making. So far I'm having a blast watching these sophisticated AI models attempt to master simple games.
 
 In AI Battleground, you can:
 
-- Select two LLMs to compete.
-- Pick a game they will compete on.
-- Track their scores over multiple games to determine the ultimate winner.
+- Select two LLMs to compete (GPT-4o, Claude, Gemini, Grok) or even you.
+- Pick a strategic game they will compete in (Battleship, TicTacToe, Mastermind, ...).
+- Track their scores over multiple games to determine the ultimate champion.
 
-This project is just me having fun and experimenting with Tool calls.
+This project showcases advanced API integration, prompt engineering, and real-time AI interaction through tool calls.
 
 ## Demo
 
-![Battleship Game Screenshot]()
+<div align="center">
+  <img src="public/assets/demo/battleship.png" alt="Battleship Game Screenshot" width="700"/>
+  <p><em>Battleship: Watch as LLMs employ search strategies and probabilistic reasoning to find and sink ships</em></p>
+  
+  <img src="public/assets/demo/tictactoe.png" alt="TicTacToe Game Screenshot" width="700"/>
+  <p><em>TicTacToe: A classic game where LLMs demonstrate strategic planning and pattern recognition</em></p>
+  
+  <img src="public/assets/demo/mastermind.png" alt="Mastermind Game Screenshot" width="700"/>
+  <p><em>Mastermind: Test how LLMs apply deductive reasoning and information processing to crack the code</em></p>
+  
+  <img src="public/assets/demo/grok_vs_gpt.png" alt="Grok vs GPT Battle" width="700"/>
+  <p><em>The ultimate showdown: Watch Grok battle against GPT-4o in real-time</em></p>
+</div>
 
-## Development Stack
+## Tech Stack & Architecture
 
-AI Battleground is built with a modern web development stack, leveraging Next.js for a seamless full-stack experience. Here’s an overview of the technologies used:
+<div align="center">
+  <img src="public/assets/images/fighters/claude.png" alt="Claude" width="100" style="display:inline-block; margin:0 10px"/>
+  <img src="public/assets/images/fighters/gpt4o.png" alt="GPT-4o" width="100" style="display:inline-block; margin:0 10px"/>
+  <img src="public/assets/images/fighters/gemini.png" alt="Gemini" width="100" style="display:inline-block; margin:0 10px"/>
+  <img src="public/assets/images/fighters/grok.png" alt="Grok" width="100" style="display:inline-block; margin:0 10px"/>
+</div>
+
+AI Battleground is built with a modern web development stack, leveraging Next.js for a seamless full-stack experience. Here's an overview of the technologies used:
 
 - **Frontend**:
+    - **React 18**: Component-based UI with hooks for state management and effects
+    - **Next.js 14**: App Router for optimized rendering, routing, and API endpoints
+    - **React Context API**: Global state management with `BattleContext` for sharing game state
+    - **Ant Design**: Enterprise-level UI component library for modern, responsive interfaces
 
-    - **React**: For building the user interface, with client-side components marked as `"use client"`.
-    - **Next.js**: Provides routing, server-side rendering (SSR), and API routes for a full-stack application.
-    - **React Context**: Manages global state (e.g., selected LLMs, game state, scores) with `BattleContext`.
+- **Backend & API Integration**:
+    - **Next.js API Routes**: Secure server-side processing of LLM API calls
+    - **Multiple LLM Providers**: Integration with OpenAI, Anthropic, Google, and xAI APIs
+    - **Tool Calling**: Implementation of function calling for structured LLM responses
 
-- **Backend**:
+- **Architecture & Design Patterns**:
+    - **Abstract Base Classes**: `BaseLLM` and `Tool` classes for consistent implementation
+    - **Factory Pattern**: LLM creation through registry for runtime selection
+    - **TypeScript**: Strong typing with interfaces and generics across the codebase
+    - **Error Handling**: Robust error boundaries and logging system
 
-    - **Next.js API Routes**: Handles server-side logic, such as LLM generation and tool execution, securely on the server.
+## Skills Demonstrated
 
-- **Game Logic**:
+This project demonstrates proficiency in several key technical areas:
 
-    - **Tool System**: A custom `Tool` class implementation for validating and processing LLM moves.
-
-- **TypeScript**: Ensures type safety and better developer experience across the codebase.
-- **Tailwind CSS**: Used for styling the UI with utility-first CSS classes.
+- **Full-Stack Development**: Complete Next.js application with React frontend and API routes backend
+- **AI Integration**: Custom integration with multiple LLM providers' APIs
+- **Prompt Engineering**: Crafting effective prompts for game strategy and decision-making
+- **TypeScript**: Strong typing throughout the codebase with interfaces and generics
+- **Software Architecture**: Implementation of design patterns and abstract base classes
+- **UI Design**: Responsive interfaces using Ant Design components
+- **Game Development**: Logic for classic games implemented with validation and state management
+- **Real-Time Processing**: Managing asynchronous API calls and state updates
 
 ## Getting Started
 
